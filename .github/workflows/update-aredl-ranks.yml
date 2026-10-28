@@ -1,0 +1,44 @@
+name: Update AREDL ranks
+
+on:
+  push:
+    paths:
+      - "main/levels.json"
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-aredl-ranks
+  cancel-in-progress: false
+
+jobs:
+  update-ranks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Refresh AREDL snapshot
+        run: node scripts/update-aredl-ranks.mjs
+
+      - name: Commit changed snapshot
+        run: |
+          if git diff --quiet -- main/aredl-ranks.json; then
+            echo "AREDL ranks are already up to date."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add main/aredl-ranks.json
+          git commit -m "chore: update AREDL rank snapshot"
+          git push

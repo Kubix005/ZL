@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RKDL - Porównaj graczy</title>
+    <link rel="stylesheet" href="style.css?v=1.2.6">
+</head>
+<body class="compare-body">
+    <header id="hejder">
+        <a href="index.html" class="header-home">Zwariowana Lista</a>
+    </header>
+
+    <nav class="page-links" aria-label="Powiązane strony">
+        <a href="leaderboard.html" class="leaderboard-button">RANKING GRACZY</a>
+        <a href="recently.html" class="leaderboard-button recently-button">OSTATNIO WBITE</a>
+        <a href="winners.html" class="leaderboard-button">ZWYCIĘZCY LEVELA</a>
+        <a href="progress.html" class="leaderboard-button">PROGRES</a>
+    </nav>
+
+    <main class="compare-page">
+        <h1 class="compare-title">PORÓWNAJ GRACZY</h1>
+
+        <div class="compare-controls">
+            <label class="compare-player">
+                <span>Gracz A</span>
+                <select id="player-a" disabled>
+                    <option>Wczytywanie graczy...</option>
+                </select>
+            </label>
+            <span class="compare-versus" aria-hidden="true">VS</span>
+            <label class="compare-player">
+                <span>Gracz B</span>
+                <select id="player-b" disabled>
+                    <option>Wczytywanie graczy...</option>
+                </select>
+            </label>
+        </div>
+
+        <section id="compare-result" class="compare-result" aria-live="polite">
+            <p class="compare-message">Wczytywanie punktów...</p>
+        </section>
+    </main>
+
+    <script src="./shared.js?v=1.2.7"></script>
+    <script>
+        const PLAYERS_URL = "./players.json";
+        const LEVELS_URL = "./levels.json";
+
+        const playerASelect = document.getElementById("player-a");
+        const playerBSelect = document.getElementById("player-b");
+        const resultContainer = document.getElementById("compare-result");
+        let ranksByName = new Map();
+        let showAlternativePlans = false;
+
+        function addPlayerOptions(select, players) {
+            select.replaceChildren();
+
+            players.forEach((player, index) => {
+                const option = document.createElement("option");
+                option.value = String(index);
+                option.textContent =
+                    `${player.name} — ${player.points.toLocaleString("pl-PL")} RK`;
+                select.appendChild(option);
+            });
+
+            select.disabled = players.length === 0;
+        }
+
+        function getCatchUpPlans(player, pointDifference, demonPool) {
+            const completedDemons = new Set(
+                player.demons.map(name => String(name).trim().toLowerCase())
+            );
+            const availableDemons = demonPool.filter(
+                demon => !completedDemons.has(demon.name.toLowerCase())
+            );
+            const completedRanks = player.demons
+                .map(name => ranksByName.get(String(name).trim().toLowerCase()))
+                .filter(Number.isInteger);
+            const bestRank = completedRanks.length
+                ? Math.min(...completedRanks)
+                : null;
+            const ownedDemons = player.demons.map(name => {
+                const normalizedName = String(name).trim().toLowerCase();
+                const rank = ranksByName.get(normalizedName);
+
+                return {
+                    name: String(name),
+                    points: rank ? getPoints(rank) : 0
+                };
+            });
+            const freeSlots = Math.max(0, 3 - ownedDemons.length);
+            const harderDemons = [];
+            const easierDemons = [];
+
+            let orderedDemons;
+
+            if (bestRank === null) {
+                orderedDemons = availableDemons.sort((a, b) => b.rank - a.rank);
+            } else {
+                availableDemons.forEach(demon => {
+                    if (demon.rank < bestRank) {
+                        harderDemons.push(demon);
+                    } else {
+                        easierDemons.push(demon);
+                    }
+                });
+
+                harderDemons.sort((a, b) => b.rank - a.rank);
+                easierDemons.sort((a, b) => a.rank - b.rank);
+                orderedDemons = [...harderDemons, ...easierDemons];
+            }
+
+            const bestPlans = new Map();
+
+            for (let count = 1; count <= 3; count++) {
+                const replacedDemons = ownedDemons
+                    .slice()
+                    .sort((a, b) => a.points - b.points)
+                    .slice(0, Math.max(0, count - freeSlots));
+                const replacedPoints = replacedDemons.reduce(
+                    (total, demon) => total + demon.points,
+                    0
+                );
+                let bestPlan = null;
+
+                function search(startIndex, chosenDemons, addedPoints, progressionScore) {
+                    if (chosenDemons.length === count) {
+                        const netPoints = addedPoints - replacedPoints;
+                        const reachesTarget = netPoints >= pointDifference;
+                        const bestReachesTarget =
+                            bestPlan && bestPlan.netPoints >= pointDifference;
+                        const isBetter = !bestPlan ||
+                            (reachesTarget && !bestReachesTarget) ||
+                            (reachesTarget === bestReachesTarget && reachesTarget &&
+                                netPoints < bestPlan.netPoints) ||
+                            (reachesTarget === bestReachesTarget && !reachesTarget &&
+                                netPoints > bestPlan.netPoints) ||
+                            (netPoints === bestPlan.netPoints &&
+                                progressionScore < bestPlan.progressionScore);
+
+                        if (isBetter) {
+                            bestPlan = {
+                                demons: [...chosenDemons],
+                                replacedDemons: [...replacedDemons],
+                                netPoints,
+                                progressionScore
+                            };
+                        }
+
+                        return;
+                    }
+
+                    const remaining = count - chosenDemons.length;
+
+                    for (
+                        let index = startIndex;
+                        index <= orderedDemons.length - remaining;
+                        index++
+                    ) {
+                        const demon = orderedDemons[index];
+                        chosenDemons.push(demon);
+                        search(
+                            index + 1,
+                            chosenDemons,
+                            addedPoints + demon.points,
+                            progressionScore + index
+                        );
+                        chosenDemons.pop();
+                    }
+                }
+
+                search(0, [], 0, 0);
+
+                if (bestPlan && bestPlan.netPoints > 0) {
+                    bestPlans.set(count, bestPlan);
+                }
+            }
+
+            return bestPlans;
+        }
+
+        function getAlternativePlans(player, comparedPlayer, demonPool) {
+            const completedDemons = new Set(
+                [player, comparedPlayer].flatMap(completedPlayer =>
+                    completedPlayer.demons.map(name =>
+                        String(name).trim().toLowerCase()
+                    )
+                )
+            );
+            const availableDemons = demonPool.filter(
+                demon => !completedDemons.has(demon.name.toLowerCase())
+            );
+            const completedRanks = player.demons
+                .map(name => ranksByName.get(String(name).trim().toLowerCase()))
+                .filter(Number.isInteger);
+            const bestRank = completedRanks.length
+                ? Math.min(...completedRanks)
+                : null;
+
+            availableDemons.sort((a, b) => {
+                if (bestRank === null) {
+                    return b.rank - a.rank;
+                }
+
+                const aIsHarder = a.rank < bestRank;
+                const bIsHarder = b.rank < bestRank;
+
+                if (aIsHarder !== bIsHarder) {
+                    return aIsHarder ? -1 : 1;
+                }
+
+                return aIsHarder
+                    ? b.rank - a.rank
+                    : a.rank - b.rank;
+            });
+
+            return [1, 2, 3]
+                .filter(count => availableDemons.length >= count)
+                .map(count => {
+                    const demons = availableDemons.slice(0, count);
+
+                    return {
+                        count,
+                        demons,
+                        totalPoints: demons.reduce(
+                            (total, demon) => total + demon.points,
+                            0
+                        )
+                    };
+                });
+        }
+
+        function renderComparison(players, demonPool) {
+            const playerA = players[Number(playerASelect.value)];
+            const playerB = players[Number(playerBSelect.value)];
+
+            if (!playerA || !playerB) {
+                resultContainer.innerHTML =
+                    '<p class="compare-message">Nie udało się wybrać graczy do porównania.</p>';
+                return;
+            }
+
+            const difference = Math.abs(playerA.points - playerB.points);
+
+            let catchUpMarkup = "";
+
+            if (difference > 0) {
+                const trailingPlayer =
+                    playerA.points < playerB.points ? playerA : playerB;
+                const catchUpPlans =
+                    getCatchUpPlans(trailingPlayer, difference, demonPool);
+                const alternativePlans =
+                    getAlternativePlans(
+                        trailingPlayer,
+                        trailingPlayer === playerA ? playerB : playerA,
+                        demonPool
+                    );
+                const displayedPlans = showAlternativePlans
+                    ? [...alternativePlans.map(plan => [plan.count, plan])]
+                    : [...catchUpPlans.entries()];
+                const planCards = displayedPlans.map(([count, plan]) => `
+                    <article class="catch-up-option">
+                        <h3>${count} ${count === 1 ? "demon" : "demony"}</h3>
+                        <strong class="catch-up-total">+${(showAlternativePlans ? plan.totalPoints : plan.netPoints).toLocaleString("pl-PL")} RK${showAlternativePlans ? "" : ""}</strong>
+                        <ol class="catch-up-list">
+                            ${plan.demons.map(demon => `
+                                <li>
+                                    <span class="catch-up-rank">#${demon.rank}</span>
+                                    <span class="catch-up-name">${escapeHTML(demon.name)}</span>
+                                    <strong>+${demon.points.toLocaleString("pl-PL")} RK</strong>
+                                </li>
+                            `).join("")}
+                        </ol>
+                        ${!showAlternativePlans && plan.replacedDemons.length
+                            ? `<p class="catch-up-replaced">
+                                    Z puli wypadają: ${plan.replacedDemons.map(demon => escapeHTML(demon.name)).join(", ")}
+                                    (−${plan.replacedDemons.reduce((total, demon) => total + demon.points, 0).toLocaleString("pl-PL")} RK)
+                               </p>`
+                            : !showAlternativePlans
+                                ? '<p class="catch-up-replaced">Wolne miejsce w puli — nic nie wypada.</p>'
+                                : ""}
+                    </article>
+                `).join("");
+                const recommendationContent = planCards ||
+                    '<p class="compare-message">Brak dostępnych demonów.</p>';
+
+                catchUpMarkup = `
+                    <div class="catch-up-plan">
+                        <div class="catch-up-heading">
+                            <h2>Propozycje dla ${escapeHTML(trailingPlayer.name)}</h2>
+                            <button
+                                class="catch-up-toggle"
+                                type="button"
+                                aria-pressed="${showAlternativePlans}"
+                            >${showAlternativePlans ? "Pokaż propozycje z limitem 3 demonów" : "Alternatywa"}</button>
+                        </div>
+                        <div class="catch-up-options">${recommendationContent}</div>
+                    </div>
+                `;
+            } else {
+                catchUpMarkup = `
+                    <div class="catch-up-plan">
+                        <h2>Remis!</h2>
+                    </div>
+                `;
+            }
+
+            resultContainer.innerHTML = `
+                <div class="compare-player-score">
+                    <span>${escapeHTML(playerA.name)}</span>
+                    <strong>${playerA.points.toLocaleString("pl-PL")} RK</strong>
+                </div>
+                <div class="compare-difference">
+                    <span>${difference === 0 ? "Wynik" : "Brakuje"}</span>
+                    <strong>${difference === 0 ? "0 RK" : `${difference.toLocaleString("pl-PL")} RK`}</strong>
+                </div>
+                <div class="compare-player-score">
+                    <span>${escapeHTML(playerB.name)}</span>
+                    <strong>${playerB.points.toLocaleString("pl-PL")} RK</strong>
+                </div>
+                ${catchUpMarkup}
+            `;
+
+            const toggleButton =
+                resultContainer.querySelector(".catch-up-toggle");
+
+            if (toggleButton) {
+                toggleButton.addEventListener("click", () => {
+                    showAlternativePlans = !showAlternativePlans;
+                    renderComparison(players, demonPool);
+                });
+            }
+        }
+
+        function escapeHTML(text) {
+            return String(text)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        async function loadComparison() {
+            try {
+                const [playersResponse, levelsResponse] = await Promise.all([
+                    fetch(PLAYERS_URL, { cache: "no-cache" }),
+                    fetch(LEVELS_URL, { cache: "no-cache" })
+                ]);
+
+                if (!playersResponse.ok || !levelsResponse.ok) {
+                    throw new Error("Nie udało się wczytać danych graczy lub demonów.");
+                }
+
+                const [playersData, levelsData] = await Promise.all([
+                    playersResponse.json(),
+                    levelsResponse.json()
+                ]);
+
+                if (!Array.isArray(playersData) || !Array.isArray(levelsData)) {
+                    throw new Error("Dane graczy lub demonów mają nieprawidłowy format.");
+                }
+
+                const demonPool = levelsData
+                    .filter(level => !isLegacyLevel(level))
+                    .slice(0, 150)
+                    .map((level, index) => ({
+                        name: String(level.name).trim(),
+                        rank: index + 1,
+                        points: getPoints(index + 1)
+                    }));
+                ranksByName = new Map(
+                    demonPool.map(demon => [demon.name.toLowerCase(), demon.rank])
+                );
+
+                const players = playersData.map(player => {
+                    const demons = Array.isArray(player.Demons) ? player.Demons : [];
+                    const points = demons.reduce((total, demonName) => {
+                        if (!demonName) {
+                            return total;
+                        }
+
+                        const rank = ranksByName.get(String(demonName).trim().toLowerCase());
+                        return total + (rank ? getPoints(rank) : 0);
+                    }, 0);
+
+                    return {
+                        name: String(player.Player || "Nieznany gracz"),
+                        points,
+                        demons
+                    };
+                }).sort((a, b) =>
+                    b.points - a.points || a.name.localeCompare(b.name, "pl")
+                );
+
+                if (players.length < 2) {
+                    throw new Error("Do porównania potrzeba co najmniej dwóch graczy.");
+                }
+
+                addPlayerOptions(playerASelect, players);
+                addPlayerOptions(playerBSelect, players);
+                playerBSelect.value = "1";
+
+                playerASelect.addEventListener("change", () => renderComparison(players, demonPool));
+                playerBSelect.addEventListener("change", () => renderComparison(players, demonPool));
+                renderComparison(players, demonPool);
+            } catch (error) {
+                console.error("Błąd porównywania graczy:", error);
+                playerASelect.disabled = true;
+                playerBSelect.disabled = true;
+                resultContainer.innerHTML = `
+                    <p class="compare-message">
+                        Nie udało się wczytać porównania.
+                        <br><small>${escapeHTML(error.message)}</small>
+                    </p>
+                `;
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", loadComparison);
+    </script>
+</body>
+</html>

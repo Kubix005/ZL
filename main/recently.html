@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RKDL - Ostatnio wbite!</title>
+    <link rel="stylesheet" href="style.css?v=1.2.5">
+</head>
+<body>
+    <header id="hejder">
+        <a href="index.html" class="header-home">Zwariowana Lista</a>
+    </header>
+
+    <nav class="page-links" aria-label="Related pages">
+        <a href="leaderboard.html" class="leaderboard-button">LEADERBOARD</a>
+        <a href="winners.html" class="leaderboard-button">ZWYCIĘZCY LEVELA</a>
+        <a href="compare.html" class="leaderboard-button">PORÓWNAJ GRACZY</a>
+        <a href="prediction.html" class="leaderboard-button">PREDYKCJA</a>
+        <a href="progress.html" class="leaderboard-button">PROGRES</a>
+    </nav>
+
+    <main class="recently-page">
+        <div class="recently-title">Najnowszy Demon Wbity!
+        </div>
+        <div id="recently-subtitle" class="recently-subtitle">Ładowanie gracza...</div>
+        <div id="recently-list" class="recently-list">
+            <div class="recently-empty">Loading recent completions...</div>
+        </div>
+    </main>
+
+    <script src="./shared.js?v=1.2.7"></script>
+    <script>
+        const PLAYERS_URL = "./players.json";
+        const LEVELS_URL = "./levels.json";
+        const THUMBNAIL_URL = "https://raw.githubusercontent.com/All-Rated-Extreme-Demon-List/Thumbnails/main/levels/cards";
+
+        function escapeHTML(text) {
+            return String(text)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        async function loadRecentlyBeat() {
+            const container = document.getElementById("recently-list");
+
+            try {
+                const [playersResponse, levelsResponse] = await Promise.all([
+                    fetch(PLAYERS_URL, { cache: "no-cache" }),
+                    fetch(LEVELS_URL, { cache: "no-cache" })
+                ]);
+
+                if (!playersResponse.ok || !levelsResponse.ok) {
+                    throw new Error("Could not load players or levels data.");
+                }
+
+                const players = await playersResponse.json();
+                const allLevels = await levelsResponse.json();
+                const legacyNames = new Set(
+                    allLevels
+                        .filter(isLegacyLevel)
+                        .map(level => String(level.name).trim().toLowerCase())
+                );
+                const levels = allLevels
+                    .filter(level => !isLegacyLevel(level));
+                const levelsByName = new Map(
+                    levels.map(level => [String(level.name).trim().toLowerCase(), level])
+                );
+                const recentPlayers = players.filter(player => {
+                    const tag = Array.isArray(player.tag) ? player.tag : [player.tag];
+                    return tag.some(value => String(value).toLowerCase() === "recent");
+                });
+
+                const entries = recentPlayers
+                    .filter(player =>
+                        player.recent &&
+                        !legacyNames.has(String(player.recent).trim().toLowerCase())
+                    )
+                    .map(player => {
+                        const demonName = String(player.recent).trim();
+                        const level = levelsByName.get(demonName.toLowerCase());
+                        const rank = level ? levels.indexOf(level) + 1 : null;
+
+                        return {
+                            playerName: player.Player || "Unknown player",
+                            demonName,
+                            level,
+                            rank,
+                            points: rank ? getPoints(rank) : null
+                        };
+                    });
+
+                const subtitle = document.getElementById("recently-subtitle");
+
+                if (subtitle && entries.length) {
+                    subtitle.textContent = `Gratulacje dla gracza ${entries[0].playerName} za pokonanie ${entries[0].demonName}!`;
+                }
+
+                if (!entries.length) {
+                    container.innerHTML = '<div class="recently-empty">No recent completions yet.</div>';
+                    return;
+                }
+
+                container.innerHTML = entries.map(entry => {
+                    const image = entry.level
+                        ? `${THUMBNAIL_URL}/${entry.level.id}.webp`
+                        : "";
+                    const imageMarkup = image
+                        ? `<div class="recently-image">
+                                <img src="${image}" alt="${escapeHTML(entry.demonName)}" loading="lazy">
+                            <div class="image-points">${entry.rank === null ? "RK unavailable" : `TOP ${entry.rank} - ${entry.points} RK`}</div>
+                           </div>`
+                        : "";
+
+                    return `
+                        <article class="recently-card">
+                            ${imageMarkup}
+                            <div class="recently-card-content">
+                                <div class="recently-player">${escapeHTML(entry.playerName)} ostatnio wbił</div>
+                                <div class="recently-demon">${escapeHTML(entry.demonName)}</div>
+                            </div>
+                        </article>
+                    `;
+                }).join("");
+            } catch (error) {
+                console.error("Could not load recently beat data:", error);
+                container.innerHTML = '<div class="recently-empty">Could not load recent completions.</div>';
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", loadRecentlyBeat);
+    </script>
+</body>
+</html>

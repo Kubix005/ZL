@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RKDL - Progres graczy</title>
+    <link rel="stylesheet" href="style.css?v=1.2.6">
+</head>
+<body>
+    <header id="hejder">
+        <a href="index.html" class="header-home">Zwariowana Lista</a>
+    </header>
+
+    <nav class="page-links" aria-label="Powiązane strony">
+        <a href="leaderboard.html" class="leaderboard-button">RANKING GRACZY</a>
+        <a href="recently.html" class="leaderboard-button recently-button">OSTATNIO WBITE</a>
+        <a href="winners.html" class="leaderboard-button">ZWYCIĘZCY LEVELA</a>
+        <a href="compare.html" class="leaderboard-button">PORÓWNAJ GRACZY</a>
+        <a href="prediction.html" class="leaderboard-button">PREDYKCJA</a>
+    </nav>
+
+    <main class="progress-page">
+        <h1 class="progress-title">PROGRES GRACZY</h1>
+        <p class="progress-description">
+            Progres dotyczy tylko leveli, które są już na naszej liście. Pokazujemy nieukończone postępy — mają charakter wyłącznie ozdobny i nie dają punktów RK. Dodaj pole „opponent” w progress.json, aby zobaczyć sugerowaną ścieżkę leveli do dogonienia rywala.
+        </p>
+        <p class="progress-threshold">
+            Progres dodajemy dopiero od <strong>50%</strong> na levelu — wynik poniżej 50% nie będzie publikowany.
+        </p>
+        <div id="progress-summary" class="progress-summary" aria-live="polite"></div>
+        <div id="progress-list" class="progress-list" aria-live="polite">
+            <p class="progress-message">Wczytywanie progresu...</p>
+        </div>
+    </main>
+
+    <script src="./shared.js?v=1.2.7"></script>
+    <script>
+        const PROGRESS_URL = "./progress.json";
+        const PLAYERS_URL = "./players.json";
+        const LEVELS_URL = "./levels.json";
+        const THUMBNAIL_URL = "https://raw.githubusercontent.com/All-Rated-Extreme-Demon-List/Thumbnails/main/levels/cards";
+
+        function escapeHTML(value) {
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function hasCompletedLevel(player, level) {
+            const levelId = String(level.id);
+            const levelName = String(level.name).trim().toLowerCase();
+
+            return Array.isArray(player.Demons) && player.Demons.some(demon => {
+                const completedDemon = String(demon).trim();
+                return completedDemon === levelId ||
+                    completedDemon.toLowerCase() === levelName;
+            });
+        }
+
+        function getCatchUpPath(player, opponent, demonPool) {
+            const pointsForPlayer = record => {
+                const demons = Array.isArray(record.Demons) ? record.Demons : [];
+                return demons.reduce((total, name) => {
+                    const demon = demonPool.find(level =>
+                        level.name.toLowerCase() === String(name).trim().toLowerCase() ||
+                        level.id === String(name).trim()
+                    );
+                    return total + (demon ? demon.points : 0);
+                }, 0);
+            };
+            const difference = pointsForPlayer(opponent) - pointsForPlayer(player);
+
+            if (difference <= 0) {
+                return {
+                    message: difference === 0
+                        ? `${player.Player} ma już tyle samo punktów co ${opponent.Player}.`
+                        : `${player.Player} ma już więcej punktów niż ${opponent.Player}.`
+                };
+            }
+
+            const availableDemons = demonPool
+                .filter(demon => !hasCompletedLevel(player, demon))
+                .sort((a, b) => b.points - a.points || a.rank - b.rank);
+            const ownedDemons = (Array.isArray(player.Demons) ? player.Demons : [])
+                .map(name => demonPool.find(demon =>
+                    demon.name.toLowerCase() === String(name).trim().toLowerCase() ||
+                    demon.id === String(name).trim()
+                ))
+                .filter(Boolean);
+            const freeSlots = Math.max(0, 3 - ownedDemons.length);
+            let bestPlan = null;
+
+            for (let count = 1; count <= Math.min(3, availableDemons.length); count++) {
+                const demons = availableDemons.slice(0, count);
+                const replacedDemons = ownedDemons
+                    .slice()
+                    .sort((a, b) => a.points - b.points)
+                    .slice(0, Math.max(0, count - freeSlots));
+                const netPoints = demons.reduce((total, demon) => total + demon.points, 0) -
+                    replacedDemons.reduce((total, demon) => total + demon.points, 0);
+
+                const plan = { demons, replacedDemons, netPoints };
+                if (netPoints >= difference) {
+                    return { difference, ...plan, reachesTarget: true };
+                }
+                if (!bestPlan || netPoints > bestPlan.netPoints) {
+                    bestPlan = plan;
+                }
+            }
+
+            return bestPlan && bestPlan.netPoints > 0
+                ? { difference, ...bestPlan, reachesTarget: false }
+                : { difference, message: "Brak dostępnych leveli, które zwiększą punkty RK." };
+        }
+
+        function renderCatchUpPath(playerName, opponentName, playersByName, demonPool) {
+            if (!opponentName) {
+                return "";
+            }
+
+            const player = playersByName.get(playerName.toLowerCase());
+            const opponent = playersByName.get(opponentName.toLowerCase());
+
+            if (!player || !opponent) {
+                return `
+                    <div class="progress-catch-up">
+                        <h3>Ścieżka do punktów rywala</h3>
+                        <p class="progress-catch-up-message">
+                            Nie znaleziono gracza ${escapeHTML(!player ? playerName : opponentName)} w players.json.
+                        </p>
+                    </div>
+                `;
+            }
+
+            const path = getCatchUpPath(player, opponent, demonPool);
+            if (path.message) {
+                return `
+                    <div class="progress-catch-up">
+                        <h3>Ścieżka do punktów rywala</h3>
+                        <p class="progress-catch-up-message">${escapeHTML(path.message)}</p>
+                    </div>
+                `;
+            }
+
+            const routeSummary = path.reachesTarget
+                ? `Najkrótsza ścieżka: ${path.demons.length} ${path.demons.length === 1 ? "level" : "levele"} — ${path.netPoints.toLocaleString("pl-PL")} RK netto.`
+                : `Najlepsza ścieżka z maksymalnie 3 leveli: ${path.netPoints.toLocaleString("pl-PL")} RK netto. Do rywala brakuje jeszcze ${(path.difference - path.netPoints).toLocaleString("pl-PL")} RK.`;
+
+            return `
+                <div class="progress-catch-up">
+                    <h3>Ścieżka do punktów ${escapeHTML(opponent.Player)}</h3>
+                    <p class="progress-catch-up-message">
+                        Różnica: ${path.difference.toLocaleString("pl-PL")} RK. ${routeSummary}
+                    </p>
+                    <ol class="progress-catch-up-list">
+                        ${path.demons.map(demon => `
+                            <li>
+                                <span>#${demon.rank}</span>
+                                <strong>${escapeHTML(demon.name)}</strong>
+                                <span>+${demon.points.toLocaleString("pl-PL")} RK</span>
+                            </li>
+                        `).join("")}
+                    </ol>
+                    ${path.replacedDemons.length
+                        ? `<p class="progress-catch-up-message">
+                            Po wbiciu wypadnie z puli: ${path.replacedDemons.map(demon => escapeHTML(demon.name)).join(", ")}
+                            (−${path.replacedDemons.reduce((total, demon) => total + demon.points, 0).toLocaleString("pl-PL")} RK).
+                           </p>`
+                        : ""}
+                </div>
+            `;
+        }
+
+        async function loadProgressPage() {
+            const container = document.getElementById("progress-list");
+            const summary = document.getElementById("progress-summary");
+
+            try {
+                const responses = await Promise.all([
+                    fetch(PROGRESS_URL, { cache: "no-cache" }),
+                    fetch(PLAYERS_URL, { cache: "no-cache" }),
+                    fetch(LEVELS_URL, { cache: "no-cache" })
+                ]);
+
+                if (responses.some(response => !response.ok)) {
+                    throw new Error("Nie udało się pobrać danych progresu.");
+                }
+
+                const [progressEntries, players, allLevels] = await Promise.all(
+                    responses.map(response => response.json())
+                );
+
+                if (
+                    !Array.isArray(progressEntries) ||
+                    !Array.isArray(players) ||
+                    !Array.isArray(allLevels)
+                ) {
+                    throw new Error("Pliki progresu, graczy i leveli muszą zawierać tablice.");
+                }
+
+                const levels = allLevels.filter(level => !isLegacyLevel(level)).slice(0, 150);
+                const demonPool = levels.map((level, index) => ({
+                    id: String(level.id),
+                    name: String(level.name).trim(),
+                    rank: index + 1,
+                    points: getPoints(index + 1)
+                }));
+                const levelsById = new Map(levels.map(level => [String(level.id), level]));
+                const playersByName = new Map(
+                    players.map(player => [
+                        String(player.Player || "").trim().toLowerCase(),
+                        player
+                    ])
+                );
+
+                const entries = progressEntries.flatMap((entry, index) => {
+                    const level = levelsById.get(String(entry?.["level-id"] ?? ""));
+                    const playerName = String(entry?.player ?? "").trim();
+                    const progressValue = parseProgressValue(entry?.procent);
+                    const player = playersByName.get(playerName.toLowerCase());
+                    const opponentName = typeof entry?.opponent === "string"
+                        ? entry.opponent.trim()
+                        : "";
+
+                    if (entry?.opponent !== undefined && !opponentName) {
+                        console.warn(
+                            `Nieprawidłowy rywal w progress.json (indeks ${index}); pole opponent musi być niepustą nazwą gracza.`
+                        );
+                    }
+
+                    if (
+                        !level ||
+                        !playerName ||
+                        !progressValue
+                    ) {
+                        console.warn(`Pomijam nieprawidłowy wpis progresu (indeks ${index}).`);
+                        return [];
+                    }
+
+                    if (player && hasCompletedLevel(player, level)) {
+                        return [];
+                    }
+
+                    return [{
+                        level,
+                        playerName,
+                        progressValue,
+                        rank: levels.indexOf(level) + 1,
+                        opponentName
+                    }];
+                });
+
+                if (entries.length === 0) {
+                    summary.textContent = "Brak zapisanych postępów.";
+                    container.innerHTML = '<p class="progress-message">Dodaj wpisy do pliku progress.json, aby wyświetlić progres graczy.</p>';
+                    return;
+                }
+
+                const entriesByLevel = new Map();
+
+                entries.forEach(entry => {
+                    const levelId = String(entry.level.id);
+                    if (!entriesByLevel.has(levelId)) {
+                        entriesByLevel.set(levelId, {
+                            level: entry.level,
+                            rank: entry.rank,
+                            players: []
+                        });
+                    }
+
+                    const levelGroup = entriesByLevel.get(levelId);
+                    const playerKey = entry.playerName.toLowerCase();
+                    let playerProgress = levelGroup.players.find(player =>
+                        player.playerName.toLowerCase() === playerKey
+                    );
+
+                    if (!playerProgress) {
+                        playerProgress = {
+                            playerName: entry.playerName,
+                            progressValues: [],
+                            opponents: new Map()
+                        };
+                        levelGroup.players.push(playerProgress);
+                    }
+
+                    playerProgress.progressValues.push(entry.progressValue);
+                    if (entry.opponentName) {
+                        playerProgress.opponents.set(
+                            entry.opponentName.toLowerCase(),
+                            entry.opponentName
+                        );
+                    }
+                });
+
+                const levelGroups = [...entriesByLevel.values()]
+                    .sort((a, b) => a.rank - b.rank);
+
+                levelGroups.forEach(group => {
+                    group.players = group.players.map(player => ({
+                        playerName: player.playerName,
+                        progressValue: combineProgressValues(player.progressValues),
+                        opponents: [...player.opponents.values()]
+                    }));
+                    group.players.sort((a, b) =>
+                        b.progressValue.end - a.progressValue.end ||
+                        b.progressValue.start - a.progressValue.start ||
+                        a.playerName.localeCompare(b.playerName)
+                    );
+                });
+
+                const playerCount = new Set(
+                    levelGroups.flatMap(group =>
+                        group.players.map(player => player.playerName.toLowerCase())
+                    )
+                ).size;
+                const progressCount = levelGroups.reduce(
+                    (total, group) => total + group.players.length,
+                    0
+                );
+
+                summary.innerHTML = `
+                    <span><strong>${progressCount}</strong> ${progressCount === 1 ? "progres" : "postępy"}</span>
+                    <span><strong>${playerCount}</strong> ${playerCount === 1 ? "gracz" : "graczy"}</span>
+                    <span>Najwyższy progres: <strong>${Math.max(...levelGroups.flatMap(group =>
+                        group.players.map(player => player.progressValue.end)
+                    ))}%</strong></span>
+                `;
+
+                container.innerHTML = levelGroups.map(group => `
+                    <article class="progress-card">
+                        <div class="progress-card-image">
+                            <img
+                                src="${THUMBNAIL_URL}/${encodeURIComponent(String(group.level.id))}.webp"
+                                alt="${escapeHTML(group.level.name)}"
+                                loading="lazy"
+                            >
+                            <span class="progress-card-rank">TOP ${group.rank}</span>
+                        </div>
+                        <div class="progress-card-content">
+                            <h2 class="progress-card-level">${escapeHTML(group.level.name)}</h2>
+                            <div class="progress-card-players">
+                                ${group.players.map(entry => `
+                                    <div class="progress-card-player-progress">
+                                        <p class="progress-card-player">${escapeHTML(entry.playerName)}</p>
+                                        <div
+                                            class="progress-card-track"
+                                            role="img"
+                                            aria-label="Progres gracza ${escapeHTML(entry.playerName)}: ${entry.progressValue.label}"
+                                        >
+                                            ${entry.progressValue.segments.map(segment => `
+                                                <span
+                                                    class="progress-card-fill${segment.reverseGradient ? " progress-fill-reversed" : ""}"
+                                                    style="left: ${segment.start}%; width: ${segment.end - segment.start}%"
+                                                ></span>
+                                            `).join("")}
+                                        </div>
+                                        <div class="progress-card-footer">
+                                            <span>PROGRES</span>
+                                            <strong>${entry.progressValue.label}</strong>
+                                        </div>
+                                        ${entry.opponents.map(opponentName =>
+                                            renderCatchUpPath(
+                                                entry.playerName,
+                                                opponentName,
+                                                playersByName,
+                                                demonPool
+                                            )
+                                        ).join("")}
+                                    </div>
+                                `).join("")}
+                            </div>
+                        </div>
+                    </article>
+                `).join("");
+
+                container.querySelectorAll(".progress-card-image img").forEach(image => {
+                    image.addEventListener("error", () => image.remove());
+                });
+            } catch (error) {
+                console.error("Nie udało się wczytać progresu graczy:", error);
+                summary.textContent = "";
+                container.innerHTML = '<p class="progress-message">Nie udało się wczytać progresu graczy.</p>';
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", loadProgressPage);
+    </script>
+</body>
+</html>

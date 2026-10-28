@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>RKDL</title>
+
+    <link rel="stylesheet" href="style.css?v=1.2.6">
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header id="hejder">
+        <a href="index.html" class="header-home">Zwariowana Lista</a>
+    </header>
+    <div class="action-links">
+        <a href="leaderboard.html" class="leaderboard-button">
+        LEADERBOARD
+        </a>
+        <a href="recently.html" id="recently-button" class="leaderboard-button recently-button">
+        OSTATNIO WBITE
+        </a>
+        <a href="winners.html" class="leaderboard-button">
+        ZWYCIĘZCY LEVELA
+        </a>
+        <a href="compare.html" class="leaderboard-button">
+        PORÓWNAJ GRACZY
+        </a>
+        <a href="prediction.html" class="leaderboard-button">
+        PREDYKCJA
+        </a>
+        <a href="progress.html" class="leaderboard-button">
+        PROGRES
+        </a>
+    </div>
+
+    <!-- PLAYER / DEMON SEARCH -->
+<div class="search-panel">
+
+    <div class="search-header">
+        <span>🔍</span>
+        SEARCH
+    </div>
+
+    <div class="search-input-wrapper">
+        <input
+            type="text"
+            id="global-search"
+            placeholder="Search player or demon..."
+            autocomplete="off"
+        >
+
+        <button id="clear-search" type="button">×</button>
+    </div>
+
+    <div id="search-results"></div>
+
+
+</div>
+
+    <!-- GŁÓWNY UKŁAD -->
+    <main class="layout">
+
+        <!-- LEWA LISTA TOP 1 - TOP 150 -->
+        <aside id="ranking">
+
+            <div class="ranking-title">
+                DEMON LIST
+            </div>
+
+            <div id="ranking-list">
+                <!-- Lista zostanie wygenerowana przez JavaScript -->
+            </div>
+
+        </aside>
+
+
+        <!-- PRAWA STRONA - DEMONY -->
+        <section id="demons">
+
+        </section>
+
+    </main>
+
+
+    <script src="./shared.js?v=1.2.7"></script>
+    <script src="./main.js?v=1.2.3"></script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RKDL - Zwycięzcy levela</title>
+    <link rel="stylesheet" href="style.css?v=1.2.5">
+</head>
+<body>
+    <header id="hejder">
+        <a href="index.html" class="header-home">Zwariowana Lista</a>
+    </header>
+
+    <nav class="page-links" aria-label="Related pages">
+        <a href="leaderboard.html" class="leaderboard-button">LEADERBOARD</a>
+        <a href="recently.html" class="leaderboard-button recently-button">OSTATNIO WBITE</a>
+        <a href="compare.html" class="leaderboard-button">PORÓWNAJ GRACZY</a>
+        <a href="prediction.html" class="leaderboard-button">PREDYKCJA</a>
+        <a href="progress.html" class="leaderboard-button">PROGRES</a>
+    </nav>
+
+    <main class="winners-page">
+        <h1 class="winners-title">ZWYCIĘZCY LEVELA</h1>
+        <div id="winners-list" class="winners-list" aria-live="polite">
+            <p class="winners-message">Ładowanie leveli...</p>
+        </div>
+    </main>
+
+    <script src="./shared.js?v=1.2.7"></script>
+    <script>
+        const LEVELS_URL = "./levels.json";
+        const PLAYERS_URL = "./players.json";
+        const THUMBNAIL_URL = "https://raw.githubusercontent.com/All-Rated-Extreme-Demon-List/Thumbnails/main/levels/cards";
+
+        function normalizeName(name) {
+            return String(name).trim().toLowerCase();
+        }
+
+        function escapeHTML(value) {
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        async function loadLevelVictors() {
+            const container = document.getElementById("winners-list");
+
+            try {
+                const [levelsResponse, playersResponse] = await Promise.all([
+                    fetch(LEVELS_URL, { cache: "no-cache" }),
+                    fetch(PLAYERS_URL, { cache: "no-cache" })
+                ]);
+
+                if (!levelsResponse.ok || !playersResponse.ok) {
+                    throw new Error("Nie udało się wczytać listy leveli lub graczy.");
+                }
+
+                const [levelsData, players] = await Promise.all([
+                    levelsResponse.json(),
+                    playersResponse.json()
+                ]);
+
+                if (!Array.isArray(levelsData) || !Array.isArray(players)) {
+                    throw new Error("Pliki levels.json i players.json muszą zawierać tablice.");
+                }
+
+                const levels = levelsData
+                    .filter(level => !isLegacyLevel(level))
+                    .slice(0, 150);
+                const victorsByLevel = new Map(
+                    levels.map(level => [normalizeName(level.name), new Set()])
+                );
+
+                players.forEach(player => {
+                    const playerName = String(player.Player || "").trim();
+                    if (!playerName || !Array.isArray(player.Demons)) {
+                        return;
+                    }
+
+                    player.Demons.forEach(demonName => {
+                        const victors = victorsByLevel.get(normalizeName(demonName));
+                        if (victors) {
+                            victors.add(playerName);
+                        }
+                    });
+                });
+
+                container.innerHTML = levels.slice(0, 150).map((level, index) => {
+                    const rank = index + 1;
+                    const victors = [...(victorsByLevel.get(normalizeName(level.name)) || [])];
+                    const victorMarkup = victors.length
+                        ? victors.map(name => `<span class="winner-victor">${escapeHTML(name)}</span>`).join("")
+                        : '<span class="winner-empty">Brak zapisanych zwycięzców</span>';
+                    const imageUrl = `${THUMBNAIL_URL}/${encodeURIComponent(String(level.id))}.webp`;
+
+                    return `
+                        <article class="winner-level">
+                            <div class="winner-level-visual">
+                                <img class="winner-level-image" src="${imageUrl}" alt="${escapeHTML(level.name)}" loading="lazy">
+                                <span class="winner-level-rank">TOP ${rank}</span>
+                            </div>
+                            <div class="winner-level-content">
+                                <h2 class="winner-level-name">${escapeHTML(level.name)}</h2>
+                                <div class="winner-victors">${victorMarkup}</div>
+                            </div>
+                        </article>
+                    `;
+                }).join("");
+
+                container.querySelectorAll(".winner-level-image").forEach(image => {
+                    image.addEventListener("error", () => image.remove());
+                });
+
+                if (levels.length === 0) {
+                    container.innerHTML = '<p class="winners-message">Brak leveli do wyświetlenia.</p>';
+                }
+            } catch (error) {
+                console.error("Nie udało się wczytać zwycięzców leveli:", error);
+                container.innerHTML = '<p class="winners-message">Nie udało się wczytać leveli i zwycięzców.</p>';
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", loadLevelVictors);
+    </script>
+</body>
+</html>

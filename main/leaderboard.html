@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>RKDL - Ranking graczy</title>
+
+    <link rel="stylesheet" href="style.css?v=1.2.5">
+
+</head>
+
+<body>
+
+    <!-- =========================
+         HEADER
+    ========================= -->
+
+    <header id="hejder">
+
+        <a href="index.html" class="header-home">Zwariowana Lista</a>
+
+    </header>
+
+    <nav class="page-links" aria-label="Related pages">
+        <a href="recently.html" class="leaderboard-button recently-button">
+            OSTATNIO WBITE!
+        </a>
+        <a href="winners.html" class="leaderboard-button">
+            ZWYCIĘZCY LEVELA
+        </a>
+        <a href="compare.html" class="leaderboard-button">
+            PORÓWNAJ GRACZY
+        </a>
+        <a href="prediction.html" class="leaderboard-button">
+            PREDYKCJA
+        </a>
+        <a href="progress.html" class="leaderboard-button">PROGRES</a>
+    </nav>
+
+
+    <!-- =========================
+         LEADERBOARD
+    ========================= -->
+
+    <main class="leaderboard-page">
+
+        <div class="leaderboard-title">
+            RANKING GRACZY
+        </div>
+
+        <div class="leaderboard-subtitle">
+            Ranking na podstawie ukończonych demonów
+        </div>
+
+        <div id="leaderboard-list">
+
+            <div class="leaderboard-loading">
+                Wczytywanie graczy...
+            </div>
+
+        </div>
+
+    </main>
+<script src="./shared.js?v=1.2.7"></script>
+<script>
+
+
+// =====================================================
+// USTAWIENIA
+// =====================================================
+
+const PLAYERS_URL = "./players.json";
+const LEVELS_URL = "./levels.json";
+const THUMBNAIL_URL = "https://raw.githubusercontent.com/All-Rated-Extreme-Demon-List/Thumbnails/main/levels/cards";
+
+
+// =====================================================
+// ESCAPE HTML
+// =====================================================
+
+function escapeHTML(text) {
+
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+function formatDemonCount(count) {
+    const lastTwoDigits = count % 100;
+    const lastDigit = count % 10;
+
+    if (count === 1) {
+        return "1 demon";
+    }
+
+    if (
+        lastTwoDigits < 12 ||
+        lastTwoDigits > 14
+    ) {
+        if (lastDigit >= 2 && lastDigit <= 4) {
+            return `${count} demony`;
+        }
+    }
+
+    return `${count} demonów`;
+}
+
+
+// =====================================================
+// LEADERBOARD
+// =====================================================
+
+async function loadLeaderboard() {
+
+    const container =
+        document.getElementById(
+            "leaderboard-list"
+        );
+
+
+    try {
+
+        // =================================================
+        // WCZYTUJEMY PLAYERS.JSON + LEVELS.JSON
+        // =================================================
+
+        const [
+            playersResponse,
+            levelsResponse
+        ] = await Promise.all([
+
+            fetch(PLAYERS_URL, {
+                cache: "no-cache"
+            }),
+
+            fetch(LEVELS_URL, {
+                cache: "no-cache"
+            })
+
+        ]);
+
+
+        if (!playersResponse.ok) {
+            throw new Error(
+                "Nie można wczytać players.json"
+            );
+        }
+
+
+        if (!levelsResponse.ok) {
+            throw new Error(
+                "Nie można wczytać levels.json"
+            );
+        }
+
+
+        const players =
+            await playersResponse.json();
+
+
+        const levels =
+            await levelsResponse.json();
+
+
+        if (!Array.isArray(players)) {
+            throw new Error(
+                "players.json musi zawierać tablicę"
+            );
+        }
+
+
+        if (!Array.isArray(levels)) {
+            throw new Error(
+                "levels.json musi zawierać tablicę"
+            );
+        }
+
+
+        const recentPlayer = players.find(player => {
+            const tag = Array.isArray(player.tag) ? player.tag : [player.tag];
+            return tag.some(value => String(value).toLowerCase() === "recent");
+        });
+        const activeLevels = levels
+            .filter(level => !isLegacyLevel(level));
+        const legacyNames = new Set(
+            levels
+                .filter(isLegacyLevel)
+                .map(level => String(level.name).trim().toLowerCase())
+        );
+        const recentLevel = recentPlayer?.recent && activeLevels.find(level =>
+            String(level.name).trim().toLowerCase() ===
+            String(recentPlayer.recent).trim().toLowerCase()
+        );
+        const recentlyButton = document.querySelector(".recently-button");
+
+        if (recentLevel && recentlyButton) {
+            recentlyButton.style.backgroundImage = `linear-gradient(rgba(0, 35, 0, 0.42), rgba(0, 20, 0, 0.78)), url("${THUMBNAIL_URL}/${recentLevel.id}.webp")`;
+            recentlyButton.title = `${recentPlayer.Player} ostatnio ukończył(a): ${recentLevel.name}`;
+        }
+
+
+        // =================================================
+        // TWORZYMY MAPĘ DEMON -> RANK
+        // =================================================
+
+        const demonMap = {};
+        const levelMap = {};
+
+
+        activeLevels
+            .forEach((level, index) => {
+
+                const rank =
+                    index + 1;
+
+
+                if (!level.name) {
+                    return;
+                }
+
+
+                const name =
+                    String(level.name)
+                        .trim()
+                        .toLowerCase();
+
+
+                if (index < 150) {
+                    demonMap[name] =
+                        rank;
+                }
+
+                levelMap[name] = {
+                    level,
+                    rank
+                };
+
+            });
+
+
+        console.log(
+            "Demony z levels.json:",
+            demonMap
+        );
+
+
+        // =================================================
+        // LICZENIE PLAYERÓW
+        // =================================================
+
+        const leaderboard =
+            players.map(player => {
+
+                let totalPoints = 0;
+
+                let completed = 0;
+
+                let bestRank = Infinity;
+
+                let top10 = 0;
+
+                let top25 = 0;
+
+                let top50 = 0;
+
+
+                // -----------------------------------------
+                // DEMONY GRACZA
+                // -----------------------------------------
+
+                const playerDemons =
+                    Array.isArray(player.Demons)
+                        ? player.Demons
+                            .filter(demonName => demonName)
+                            .filter(demonName =>
+                                !legacyNames.has(String(demonName).trim().toLowerCase())
+                            )
+                        : [];
+
+
+                playerDemons.forEach(
+                    demonName => {
+
+                        if (!demonName) {
+                            return;
+                        }
+
+
+                        const key =
+                            String(demonName)
+                                .trim()
+                                .toLowerCase();
+
+
+                        const rank =
+                            demonMap[key];
+
+
+                        // ---------------------------------
+                        // DEMON NIE JEST NA LIŚCIE
+                        // ---------------------------------
+
+                        if (!rank) {
+
+                            console.warn(
+                                `Nie znaleziono "${demonName}" w levels.json`
+                            );
+
+                            return;
+
+                        }
+
+
+                        // ---------------------------------
+                        // PUNKTY
+                        // ---------------------------------
+
+                        const points =
+                            getPoints(rank);
+
+
+                        totalPoints += points;
+
+                        completed++;
+
+
+                        // ---------------------------------
+                        // BEST
+                        // ---------------------------------
+
+                        if (rank < bestRank) {
+
+                            bestRank =
+                                rank;
+
+                        }
+
+
+                        // ---------------------------------
+                        // TOP 10
+                        // ---------------------------------
+
+                        if (rank <= 10) {
+
+                            top10++;
+
+                        }
+
+
+                        // ---------------------------------
+                        // TOP 25
+                        // ---------------------------------
+
+                        if (rank <= 25) {
+
+                            top25++;
+
+                        }
+
+
+                        // ---------------------------------
+                        // TOP 50
+                        // ---------------------------------
+
+                        if (rank <= 50) {
+
+                            top50++;
+
+                        }
+
+                    }
+                );
+
+
+                return {
+
+                    name:
+                        String(
+                            player.Player || ""
+                        ),
+
+                    points:
+                        totalPoints,
+
+                    completed:
+                        completed,
+
+                    bestRank:
+                        bestRank === Infinity
+                            ? "-"
+                            : bestRank,
+
+                    top10:
+                        top10,
+
+                    top25:
+                        top25,
+
+                    top50:
+                        top50,
+
+                    demons:
+                        playerDemons
+                            .map(demonName => {
+                                const name = String(demonName).trim();
+                                const demon = levelMap[name.toLowerCase()];
+
+                                return {
+                                    name,
+                                    rank: demon?.rank,
+                                    id: demon?.level.id
+                                };
+                            })
+
+                };
+
+            });
+
+
+        // =================================================
+        // SORTOWANIE
+        // =================================================
+
+        leaderboard.sort(
+            (a, b) => {
+
+                // Najpierw punkty
+                if (
+                    b.points !==
+                    a.points
+                ) {
+
+                    return (
+                        b.points -
+                        a.points
+                    );
+
+                }
+
+
+                // Potem liczba demonów
+                if (
+                    b.completed !==
+                    a.completed
+                ) {
+
+                    return (
+                        b.completed -
+                        a.completed
+                    );
+
+                }
+
+
+                // Na końcu najlepszy rank
+                return (
+                    (a.bestRank === "-"
+                        ? 999
+                        : a.bestRank
+                    )
+                    -
+                    (b.bestRank === "-"
+                        ? 999
+                        : b.bestRank
+                    )
+                );
+
+            }
+        );
+
+
+        // =================================================
+        // WYŚWIETLANIE
+        // =================================================
+
+        container.innerHTML = "";
+
+
+        leaderboard.forEach(
+            (player, index) => {
+
+                const entry =
+                    document.createElement("div");
+
+                entry.className =
+                    "leaderboard-entry";
+
+                const row =
+                    document.createElement("button");
+
+                const detailsId =
+                    `player-demons-${index}`;
+
+                row.type =
+                    "button";
+
+                row.className =
+                    "leaderboard-row";
+
+                row.setAttribute("aria-expanded", "false");
+
+                row.setAttribute("aria-controls", detailsId);
+
+                row.innerHTML = `
+
+                    <span class="leaderboard-position">
+                        #${index + 1}
+                    </span>
+
+
+                    <span class="leaderboard-player">
+
+                        <span class="leaderboard-player-name">
+                            ${escapeHTML(player.name)}
+                        </span>
+
+                        <span class="leaderboard-player-stats">
+                            ${formatDemonCount(player.completed)} · Hardest: ${player.bestRank}
+                        </span>
+                    </span>
+
+
+                    <span class="leaderboard-tops">
+
+                        <span>
+                            TOP 10:
+                            ${player.top10}
+                        </span>
+
+                        <span>
+                            TOP 25:
+                            ${player.top25}
+                        </span>
+
+                        <span>
+                            TOP 50:
+                            ${player.top50}
+                        </span>
+
+                    </span>
+
+
+                    <span class="leaderboard-points">
+                        ${player.points} <small>RK</small>
+                    </span>
+
+                `;
+
+                const details =
+                    document.createElement("div");
+
+                details.id =
+                    detailsId;
+
+                details.className =
+                    "leaderboard-demons";
+
+                details.hidden =
+                    true;
+
+                details.innerHTML = player.demons.length
+                    ? `
+                        <div class="leaderboard-demons-title">
+                            Demony gracza ${escapeHTML(player.name)}
+                        </div>
+                        <div class="leaderboard-demons-list">
+                            ${player.demons.map(demon => `
+                                <div class="leaderboard-demon">
+                                    ${demon.id
+                                        ? `<img src="${THUMBNAIL_URL}/${encodeURIComponent(String(demon.id))}.webp" alt="" loading="lazy">`
+                                        : ""}
+                                    <span class="leaderboard-demon-name">${escapeHTML(demon.name)}</span>
+                                    <span class="leaderboard-demon-rank">${demon.rank ? `#${demon.rank}` : "Poza rankingiem"}</span>
+                                </div>
+                            `).join("")}
+                        </div>
+                    `
+                    : '<div class="leaderboard-demons-empty">Brak zapisanych demonów.</div>';
+
+                row.addEventListener("click", () => {
+                    const isExpanded =
+                        row.getAttribute("aria-expanded") === "true";
+
+                    row.setAttribute(
+                        "aria-expanded",
+                        String(!isExpanded)
+                    );
+
+                    details.hidden =
+                        isExpanded;
+                });
+
+                entry.append(row, details);
+                container.appendChild(entry);
+
+            }
+        );
+
+
+        console.log(
+            "Leaderboard załadowany poprawnie."
+        );
+
+    }
+
+
+    catch (error) {
+
+        console.error(
+            "Błąd leaderboardu:",
+            error
+        );
+
+
+        container.innerHTML = `
+
+            <div class="leaderboard-loading">
+
+                Błąd podczas ładowania rankingu.
+
+                <br><br>
+
+                <small>
+                    ${escapeHTML(error.message)}
+                </small>
+
+            </div>
+
+        `;
+
+    }
+
+}
+
+
+// =====================================================
+// START
+// =====================================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        loadLeaderboard();
+
+    }
+);
+
+</script>
+</body>
+</html>

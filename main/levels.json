@@ -1,0 +1,193 @@
+[
+    {
+        "name": "Firework",
+        "id": "75206202"
+    },
+    {
+        "name": "Voltage",
+        "id": "131599104"
+    },
+    {
+        "name": "Renevant",
+        "id": "58161496"
+    },
+    {
+        "name": "Shimmer",
+        "id": "94156085"
+    },
+    {
+        "name": "Rust",
+        "id": "71912451"
+    },
+    {
+        "name": "Cobwebs",
+        "id": "82172844"
+    },
+    {
+        "name": "The Rupture",
+        "id": "57828784"
+    },
+    {
+        "name": "Jesse Pinkman",
+        "id": "79918576"
+    },
+    {
+        "name": "Atomic cannon",
+        "id": "77681476"
+    },
+    {
+        "name": "The Yandere",
+        "id": "54615662"
+    },
+    {
+        "name": "Plasma Pulse Finale",
+        "id": "38655495"
+    },
+    {
+        "name": "Calamity",
+        "id": "64766514",
+        "legacy":"true"
+    },
+    {
+        "name": "Wasureta",
+        "id": "64658786"
+    },
+    {
+        "name": "Sink",
+        "id": "77255632"
+    },
+    {
+        "name": "Sonic Wave",
+        "id": "26681070"
+    },
+    {
+        "name": "Yatagarasu",
+        "id": "28220417"
+    },
+    {
+        "name": "Molten Core",
+        "id": "68414488"
+    },
+    {
+        "name": "Chromatic Haze",
+        "id": "62869408"
+    },
+    {
+        "name": "Stalemate Redux",
+        "id": "37398911"
+    },
+    {
+        "name": "Zaphkiel",
+        "id": "36329434"
+    },
+    {
+        "name": "Killbot",
+        "id": "38754426"
+    },
+    {
+        "name": "Artificial Ascent",
+        "id": "27122654"
+    },
+    {
+        "name": "Quantum Processing",
+        "id": "38235367"
+    },
+    {
+        "name": "Black Blizzard",
+        "id": "34057654"
+    },
+    {
+        "name": "Dmg Ctrl",
+        "id": "73733373"
+    },
+    {
+        "name": "Hatred",
+        "id": "27580467"
+    },
+    {
+        "name": "Subsonic",
+        "id": "33387622"
+    },
+    {
+        "name":"Athanatos",
+        "id":"26133601"
+    },
+    {
+        "name": "Removed Submission",
+        "id": "52113279"
+    },
+    {
+        "name": "Darkened",
+        "id": "66085306"
+    },
+    {
+        "name": "Blade Of Justice",
+        "id": "35448603"
+    },
+    {
+        "name": "Infinite Inversion",
+        "id": "102807047"
+    },
+    {
+        "name": "Sakupen Hell",
+        "id": "23262780"
+    },
+    {
+        "name": "Moment",
+        "id": "68848817"
+    },
+    {
+        "name": "Gravity",
+        "id": "77008332"
+    },
+    {
+        "name": "Bloodbath",
+        "id": "10565740"
+    },
+    {
+        "name": "Inflective",
+        "id": "61591522"
+    },
+    {
+        "name": "Cat Planet",
+        "id": "84766628"
+    },
+    {
+        "name": "Esencia",
+        "id": "54988894"
+    },
+    {
+        "name": "Quadratic Function",
+        "id": "105290756"
+    },
+    {
+        "name": "Broken Signal",
+        "id": "69108628"
+    },
+    {
+        "name": "Diligence",
+        "id": "62419473",
+        "legacy":"true"
+    },
+    {
+        "name": "Crowd Control",
+        "id": "69491632"
+    },
+    {
+        "name": "Allegiance",
+        "id": "20761188",
+        "legacy":"true"
+    },
+    {
+        "name": "Dreamer",
+        "id": "75162476"
+    },
+    {
+        "name": "Anya III",
+        "id": "81257586"
+    },
+    {
+        "name": "Cataclysm",
+        "id": "3979721"
+    }
+]

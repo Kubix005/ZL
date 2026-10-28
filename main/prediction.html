@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RKDL - Predykcja levela</title>
+    <link rel="stylesheet" href="style.css?v=1.2.5">
+</head>
+<body>
+    <header id="hejder">
+        <a href="index.html" class="header-home">Zwariowana Lista</a>
+    </header>
+
+    <nav class="page-links" aria-label="Powiązane strony">
+        <a href="leaderboard.html" class="leaderboard-button">RANKING GRACZY</a>
+        <a href="recently.html" class="leaderboard-button recently-button">OSTATNIO WBITE</a>
+        <a href="winners.html" class="leaderboard-button">ZWYCIĘZCY LEVELA</a>
+        <a href="compare.html" class="leaderboard-button">PORÓWNAJ GRACZY</a>
+        <a href="progress.html" class="leaderboard-button">PROGRES</a>
+    </nav>
+
+    <main class="prediction-page">
+        <h1 class="prediction-title">GDZIE BYŁBY TEN LEVEL?</h1>
+        <p class="prediction-description">
+            Wpisz ID levela z AREDL, a sprawdzimy jego przewidywane miejsce
+            na naszej liście i liczbę punktów RK.
+        </p>
+
+        <form id="prediction-form" class="prediction-form">
+            <label for="level-id">ID levela z AREDL</label>
+            <input
+                id="level-id"
+                name="level-id"
+                type="text"
+                inputmode="numeric"
+                autocomplete="off"
+                pattern="[0-9]+"
+                maxlength="12"
+                placeholder="Np. 90477539"
+                required
+            >
+            <small>
+                ID znajdziesz w adresie levela na AREDL, np.
+                <code>aredl.net/list/90477539</code>.
+                Predykcja używa aktualnej pozycji levela w głównej liście AREDL.
+            </small>
+            <button class="leaderboard-button" type="submit">SPRAWDŹ PREDYKCJĘ</button>
+        </form>
+
+        <section id="prediction-result" class="prediction-result" aria-live="polite" hidden></section>
+    </main>
+
+    <script src="./shared.js?v=1.2.7"></script>
+    <script>
+        const LEVELS_URL = "./levels.json";
+        const AREDL_RANKS_URL = "./aredl-ranks.json";
+        const AREDL_LEVELS_URL =
+            "https://api.aredl.net/v2/api/aredl/levels?exclude_legacy=true&exclude_pending=true&exclude_removed=true";
+
+        const predictionForm = document.getElementById("prediction-form");
+        const levelIdInput = document.getElementById("level-id");
+        const submitButton = predictionForm.querySelector("button");
+        const resultContainer = document.getElementById("prediction-result");
+
+        let activeLevels = [];
+        let aredlRanks = {};
+        let aredlLevelsRequest;
+
+        function showError(message) {
+            resultContainer.hidden = false;
+            resultContainer.innerHTML = "";
+            resultContainer.classList.add("prediction-error");
+            const error = document.createElement("p");
+            error.textContent = message;
+            resultContainer.appendChild(error);
+        }
+
+        function formatNeighbors(levelIndex, isExisting) {
+            const previousLevel = activeLevels[levelIndex - 1];
+            const nextLevel = activeLevels[levelIndex + (isExisting ? 1 : 0)];
+            const previousRank = levelIndex;
+            const nextRank = levelIndex + (isExisting ? 2 : 1);
+
+            if (previousLevel && nextLevel) {
+                return `Między ${previousLevel.name} (#${previousRank}) a ${nextLevel.name} (#${nextRank}).`;
+            }
+
+            if (nextLevel) {
+                return `${isExisting ? "Następny level" : "Przed"}: ${nextLevel.name} (#${nextRank}).`;
+            }
+
+            if (previousLevel) {
+                return `Poprzedni level: ${previousLevel.name} (#${previousRank}).`;
+            }
+
+            return "Brak leveli do porównania.";
+        }
+
+        function showPrediction(levelId, levelName, aredlRank, existingIndex = -1) {
+            const levelIndex = existingIndex >= 0
+                ? existingIndex
+                : activeLevels.filter(level => {
+                    const currentAredlRank = aredlRanks[String(level.id)];
+                    return Number.isInteger(currentAredlRank) &&
+                        currentAredlRank < aredlRank;
+                }).length;
+            const rkRank = levelIndex + 1;
+            const points = getPoints(rkRank);
+            const isExisting = existingIndex >= 0;
+
+            resultContainer.classList.remove("prediction-error");
+            resultContainer.replaceChildren();
+
+            const heading = document.createElement("h2");
+            heading.textContent = isExisting
+                ? "Ten level jest już na liście!"
+                : "Przewidywany wynik";
+
+            const position = document.createElement("p");
+            position.className = "prediction-position";
+            position.textContent =
+                `${isExisting ? "Aktualne miejsce" : "Przewidywane miejsce"}: #${rkRank}`;
+
+            const score = document.createElement("p");
+            score.className = "prediction-score";
+            score.textContent = `${points.toLocaleString("pl-PL")} RK`;
+
+            const levelDetails = document.createElement("p");
+            const levelNameElement = document.createElement("strong");
+            levelNameElement.textContent = levelName;
+            levelDetails.append(
+                levelNameElement,
+                document.createTextNode(` — AREDL #${aredlRank}`)
+            );
+
+            const neighbors = document.createElement("p");
+            neighbors.className = "prediction-neighbors";
+            neighbors.textContent = formatNeighbors(levelIndex, isExisting);
+
+            const link = document.createElement("a");
+            link.href = `https://aredl.net/list/${encodeURIComponent(levelId)}`;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            link.textContent = "Otwórz level na AREDL";
+
+            resultContainer.append(heading, position, score, levelDetails, neighbors, link);
+            resultContainer.hidden = false;
+        }
+
+        async function loadComparisonData() {
+            const [levelsResponse, ranksResponse] = await Promise.all([
+                fetch(LEVELS_URL, { cache: "no-cache" }),
+                fetch(AREDL_RANKS_URL, { cache: "no-cache" })
+            ]);
+
+            if (!levelsResponse.ok || !ranksResponse.ok) {
+                throw new Error("Nie udało się wczytać danych listy RKDL.");
+            }
+
+            const [levelsData, ranksData] = await Promise.all([
+                levelsResponse.json(),
+                ranksResponse.json()
+            ]);
+
+            if (!Array.isArray(levelsData) || !ranksData.ranks ||
+                typeof ranksData.ranks !== "object" || Array.isArray(ranksData.ranks)) {
+                throw new Error("Dane listy RKDL lub rankingu AREDL mają nieprawidłowy format.");
+            }
+
+            activeLevels = levelsData
+                .filter(level => !isLegacyLevel(level))
+                .slice(0, 150);
+            aredlRanks = ranksData.ranks;
+        }
+
+        async function loadAredlLevels() {
+            if (!aredlLevelsRequest) {
+                aredlLevelsRequest = fetch(AREDL_LEVELS_URL)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`AREDL zwróciło błąd HTTP ${response.status}.`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (!Array.isArray(data)) {
+                            throw new Error("AREDL zwróciło dane w nieprawidłowym formacie.");
+                        }
+                        return data;
+                    })
+                    .catch(error => {
+                        aredlLevelsRequest = null;
+                        throw error;
+                    });
+            }
+
+            return aredlLevelsRequest;
+        }
+
+        predictionForm.addEventListener("submit", async event => {
+            event.preventDefault();
+
+            const levelId = levelIdInput.value.trim();
+            if (!/^\d{1,12}$/.test(levelId)) {
+                showError("Wpisz prawidłowe numeryczne ID levela z AREDL.");
+                return;
+            }
+
+            submitButton.disabled = true;
+            resultContainer.hidden = false;
+            resultContainer.classList.remove("prediction-error");
+            resultContainer.textContent = "Sprawdzam level na AREDL...";
+
+            try {
+                if (activeLevels.length === 0) {
+                    await loadComparisonData();
+                }
+
+                const existingIndex = activeLevels.findIndex(
+                    level => String(level.id) === levelId
+                );
+                if (existingIndex >= 0) {
+                    showPrediction(
+                        levelId,
+                        activeLevels[existingIndex].name,
+                        aredlRanks[levelId],
+                        existingIndex
+                    );
+                    return;
+                }
+
+                const aredlLevels = await loadAredlLevels();
+                const level = aredlLevels.find(item =>
+                    String(item.level_id) === levelId &&
+                    item.status === "MainList" &&
+                    item.two_player !== true &&
+                    Number.isInteger(item.position)
+                );
+
+                if (!level) {
+                    showError("Nie znaleziono aktywnego levela z takim ID w głównej liście AREDL.");
+                    return;
+                }
+
+                showPrediction(levelId, level.name, level.position);
+            } catch (error) {
+                console.error("Nie udało się obliczyć predykcji levela:", error);
+                showError(`Nie udało się sprawdzić levela. ${error.message}`);
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
