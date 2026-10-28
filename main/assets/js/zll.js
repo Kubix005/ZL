@@ -1,7 +1,7 @@
-const LEVELS_URL = "./levels.json";
-const PLAYERS_URL = "./players.json";
-const PROGRESS_URL = "./progress.json";
-const AREDL_RANKS_URL = "./aredl-ranks.json";
+const LEVELS_URL = "../../levels.json";
+const PLAYERS_URL = "../../players.json";
+const PROGRESS_URL = "../../progress.json";
+const AREDL_RANKS_URL = "../../aredl-ranks.json";
 
 const THUMBNAIL_URL =
     "https://raw.githubusercontent.com/All-Rated-Extreme-Demon-List/Thumbnails/main/levels/cards";

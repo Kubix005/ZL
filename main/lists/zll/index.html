@@ -1,37 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>RKDL</title>
+    <title>Zwariowany Level List (ZLL)</title>
 
-    <link rel="stylesheet" href="style.css?v=1.2.6">
+    <link rel="stylesheet" href="../../assets/css/style.css?v=1.3.2">
+    <link rel="stylesheet" href="../../assets/css/lists.css?v=1.3.2">
 </head>
 
 <body>
 
     <!-- HEADER -->
     <header id="hejder">
-        <a href="index.html" class="header-home">Zwariowana Lista</a>
+        <a href="../../index.html" class="header-home">Zwariowana Lista</a>
     </header>
+    <nav class="list-sections" aria-label="Listy Zwariowanej Listy">
+        <a href="./index.html" aria-current="page">Zwariowany Level List (ZLL)</a>
+        <a href="../challenge/index.html">Zwariowany Challenge List</a>
+    </nav>
     <div class="action-links">
-        <a href="leaderboard.html" class="leaderboard-button">
+        <a href="../../leaderboard.html" class="leaderboard-button">
         LEADERBOARD
         </a>
-        <a href="recently.html" id="recently-button" class="leaderboard-button recently-button">
+        <a href="../../recently.html" id="recently-button" class="leaderboard-button recently-button">
         OSTATNIO WBITE
         </a>
-        <a href="winners.html" class="leaderboard-button">
+        <a href="../../winners.html" class="leaderboard-button">
         ZWYCIĘZCY LEVELA
         </a>
-        <a href="compare.html" class="leaderboard-button">
+        <a href="../../compare.html" class="leaderboard-button">
         PORÓWNAJ GRACZY
         </a>
-        <a href="prediction.html" class="leaderboard-button">
+        <a href="../../prediction.html" class="leaderboard-button">
         PREDYKCJA
         </a>
-        <a href="progress.html" class="leaderboard-button">
+        <a href="../../progress.html" class="leaderboard-button">
         PROGRES
         </a>
     </div>
@@ -67,7 +72,7 @@
         <aside id="ranking">
 
             <div class="ranking-title">
-                DEMON LIST
+                ZLL — ZWARIOWANY LEVEL LIST
             </div>
 
             <div id="ranking-list">
@@ -85,7 +90,7 @@
     </main>
 
 
-    <script src="./shared.js?v=1.2.7"></script>
-    <script src="./main.js?v=1.2.3"></script>
+    <script src="../../assets/js/shared.js?v=1.3.0"></script>
+    <script src="../../assets/js/zll.js?v=1.3.0"></script>
 </body>
 </html>

@@ -1,0 +1,33 @@
+.list-sections {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    width: min(1000px, 92%);
+    margin: -20px auto 32px;
+}
+
+.list-sections a {
+    display: inline-flex;
+    min-height: 48px;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 18px;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    background: linear-gradient(145deg, #173858, #0b1c2f 70%);
+    border: 1px solid rgba(115, 180, 245, 0.42);
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.list-sections a[aria-current="page"] {
+    background: linear-gradient(145deg, #174b80, #0b2542);
+    border-color: rgba(140, 200, 255, 0.7);
+}
+
+.list-sections a:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 3px;
+}

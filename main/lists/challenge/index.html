@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zwariowany Challenge List</title>
+    <link rel="stylesheet" href="../../assets/css/style.css?v=1.3.2">
+    <link rel="stylesheet" href="../../assets/css/lists.css?v=1.3.2">
+    <link rel="stylesheet" href="../../assets/css/challenge.css?v=1.3.2">
+</head>
+<body>
+    <header id="hejder">
+        <a href="../../index.html" class="header-home">Zwariowana Lista</a>
+    </header>
+
+    <nav class="list-sections" aria-label="Listy Zwariowanej Listy">
+        <a href="../zll/index.html">Zwariowany Level List (ZLL)</a>
+        <a href="./index.html" aria-current="page">Zwariowany Challenge List</a>
+    </nav>
+
+    <main class="challenge-page">
+        <h1 class="challenge-title">Zwariowany Challenge List</h1>
+        <p class="challenge-description">
+            Osobna lista wyzwań z własną punktacją i rankingiem graczy.
+        </p>
+
+        <section class="challenge-section" aria-labelledby="challenge-levels-title">
+            <h2 id="challenge-levels-title">Lista wyzwań</h2>
+            <div id="challenge-levels" class="challenge-levels" aria-live="polite">
+                <p class="challenge-message">Wczytywanie listy wyzwań...</p>
+            </div>
+        </section>
+
+        <section class="challenge-section" aria-labelledby="challenge-ranking-title">
+            <h2 id="challenge-ranking-title">Ranking graczy Challenge</h2>
+            <div id="challenge-leaderboard" class="challenge-leaderboard" aria-live="polite">
+                <p class="challenge-message">Wczytywanie rankingu...</p>
+            </div>
+        </section>
+    </main>
+
+    <script src="../../assets/js/shared.js?v=1.3.0"></script>
+    <script src="../../assets/js/challenge.js?v=1.3.0"></script>
+</body>
+</html>

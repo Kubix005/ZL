@@ -1,0 +1,131 @@
+.challenge-page {
+    width: min(1100px, 92%);
+    margin: 40px auto 80px;
+}
+
+.challenge-title,
+.challenge-description {
+    text-align: center;
+}
+
+.challenge-title {
+    margin-bottom: 10px;
+    font-size: clamp(28px, 4vw, 36px);
+}
+
+.challenge-description {
+    margin-bottom: 32px;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.challenge-section {
+    margin-top: 24px;
+    padding: 22px;
+    background: linear-gradient(145deg, rgba(18, 54, 91, 0.78), rgba(4, 12, 22, 0.88));
+    border: 1px solid rgba(120, 185, 255, 0.34);
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
+.challenge-section h2 {
+    margin-bottom: 16px;
+    color: #a9d8ff;
+    font-size: 22px;
+}
+
+.challenge-message {
+    color: rgba(255, 255, 255, 0.75);
+    line-height: 1.6;
+}
+
+.challenge-error {
+    color: #ffb3b3;
+}
+
+.challenge-level-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.challenge-level-card {
+    display: grid;
+    grid-template-columns: 42px 72px minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.055);
+    border: 1px solid rgba(120, 185, 255, 0.2);
+    border-radius: 10px;
+}
+
+.challenge-level-rank {
+    color: #a9d8ff;
+    font-weight: bold;
+}
+
+.challenge-level-image {
+    width: 72px;
+    height: 48px;
+    object-fit: cover;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 6px;
+}
+
+.challenge-level-image[hidden] {
+    display: none;
+}
+
+.challenge-level-details {
+    min-width: 0;
+}
+
+.challenge-level-details h3 {
+    overflow-wrap: anywhere;
+    font-size: 15px;
+}
+
+.challenge-level-points {
+    display: inline-block;
+    margin-top: 5px;
+    color: #c3e2ff;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.challenge-ranking-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.challenge-ranking-table th,
+.challenge-ranking-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid rgba(120, 185, 255, 0.18);
+}
+
+.challenge-ranking-table th {
+    color: #a9d8ff;
+}
+
+.challenge-ranking-table td:last-child {
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+    .challenge-section {
+        padding: 16px;
+    }
+
+    .challenge-ranking-table th,
+    .challenge-ranking-table td {
+        padding: 9px 5px;
+        font-size: 13px;
+    }
+}

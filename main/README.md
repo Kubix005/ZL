@@ -1,5 +1,26 @@
-# RKDL
+# Zwariowana Lista
 Zwariowana Lista
+
+## Struktura list
+
+Strona główna `index.html` prowadzi do dwóch niezależnych list:
+
+- ZLL: `lists/zll/index.html`, z levelami z głównego `levels.json`.
+- Zwariowany Challenge List: `lists/challenge/index.html`, z wyzwaniami z `lists/challenge/levels.json`.
+
+W obu plikach JSON kolejność elementów wyznacza miejsce na liście. Challenge List może mieć maksymalnie 150 aktywnych wyzwań. Jej punkty są liczone tą samą krzywą co ZLL, ale osobno według rankingu Challenge; wyniki i ukończenia Challenge nie zmieniają punktów ZLL.
+
+Ukończenia Challenge zapisuj przy graczu w `players.json` w opcjonalnym polu `ChallengeDemons`. Wartością może być nazwa lub ID wyzwania:
+
+```json
+{
+  "Player": "NazwaGracza",
+  "Demons": ["Level z ZLL"],
+  "ChallengeDemons": ["Nazwa wyzwania"]
+}
+```
+
+Wspólne arkusze i skrypty są w `assets/css/` i `assets/js/`. Widoki list znajdują się w osobnych katalogach `lists/zll/` i `lists/challenge/`.
 
 ## Punktacja
 
@@ -37,4 +58,4 @@ Pole `opponent` jest opcjonalne. Podaj w nim dokładną nazwę gracza z `players
 
 ## Predykcja levela
 
-Strona `prediction.html` przyjmuje numeryczne ID levela z adresu AREDL i sprawdza jego aktualną pozycję na głównej liście AREDL. Na tej podstawie przewiduje miejsce levela w RKDL oraz punkty RK według aktualnego wzoru punktacji. To szacunek oparty na rankingu AREDL, nie ręczna ocena trudności RKDL.
+Strona `prediction.html` przyjmuje numeryczne ID levela z adresu AREDL i sprawdza jego aktualną pozycję na głównej liście AREDL. Na tej podstawie przewiduje miejsce levela w ZLL oraz punkty RK według aktualnego wzoru punktacji. To szacunek oparty na rankingu AREDL, nie ręczna ocena trudności ZLL.
