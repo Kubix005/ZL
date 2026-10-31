@@ -10,6 +10,9 @@ const LIST_PAGE_CONTEXT = (() => {
         playersUrl: isChallengeList
             ? "./challenge-players.json"
             : "./players.json",
+        linksUrl: isChallengeList
+            ? "./links.json"
+            : "./lists/zll/levels-links.json",
         completionField: isChallengeList ? "ChallengeDemons" : "Demons"
     };
 })();

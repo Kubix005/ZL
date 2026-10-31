@@ -78,7 +78,7 @@ const PLAYERS_URL = LIST_PAGE_CONTEXT.playersUrl;
 const PLAYERS_FILE = PLAYERS_URL.split("/").pop();
 const LEVELS_URL = LIST_PAGE_CONTEXT.levelsUrl;
 const THUMBNAIL_URL = "https://raw.githubusercontent.com/All-Rated-Extreme-Demon-List/Thumbnails/main/levels/cards";
-const LINKS_URL = "./links.json";
+const LINKS_URL = LIST_PAGE_CONTEXT.linksUrl;
 
 
 // =====================================================
@@ -181,11 +181,9 @@ async function loadLeaderboard() {
                 cache: "no-cache"
             }),
 
-            LIST_PAGE_CONTEXT.isChallengeList
-                ? fetch(LINKS_URL, {
-                    cache: "no-cache"
-                })
-                : Promise.resolve(null)
+            fetch(LINKS_URL, {
+                cache: "no-cache"
+            })
 
         ]);
 
@@ -203,7 +201,7 @@ async function loadLeaderboard() {
             );
         }
 
-        if (linksResponse && !linksResponse.ok) {
+        if (!linksResponse.ok) {
             throw new Error(
                 `Nie można wczytać ${LINKS_URL}`
             );
@@ -217,9 +215,7 @@ async function loadLeaderboard() {
         const levels =
             await levelsResponse.json();
 
-        const links = linksResponse
-            ? await linksResponse.json()
-            : [];
+        const links = await linksResponse.json();
 
 
         if (!Array.isArray(players)) {
@@ -252,7 +248,7 @@ async function loadLeaderboard() {
             try {
                 videoUrl = new URL(String(link?.videoUrl ?? "").trim());
             } catch {
-                console.warn(`Nieprawidłowy videoUrl w links.json (wpis ${index + 1}).`);
+                console.warn(`Nieprawidłowy videoUrl w ${LINKS_URL} (wpis ${index + 1}).`);
                 return;
             }
 
@@ -261,15 +257,15 @@ async function loadLeaderboard() {
                 !levelIds.length ||
                 !["http:", "https:"].includes(videoUrl.protocol)
             ) {
-                console.warn(`Nieprawidłowy wpis links.json (wpis ${index + 1}).`);
+                console.warn(`Nieprawidłowy wpis ${LINKS_URL} (wpis ${index + 1}).`);
                 return;
             }
 
             levelIds.forEach(levelId => {
-                const key = `${playerName.toLowerCase()}::${levelId}`;
+                const key = `${playerName.toLowerCase()}::${levelId.toLowerCase()}`;
 
                 if (videoLinks.has(key)) {
-                    console.warn(`Powielony link do wyzwania w links.json (wpis ${index + 1}).`);
+                    console.warn(`Powielony link do levelu w ${LINKS_URL} (wpis ${index + 1}).`);
                     return;
                 }
 
@@ -554,8 +550,8 @@ async function loadLeaderboard() {
                                     author: demon?.level.Autor,
                                     isNew: demon?.level.id != null &&
                                         newLevelIds.has(String(demon.level.id)),
-                                    videoUrl: LIST_PAGE_CONTEXT.isChallengeList && demon?.level.id != null
-                                        ? videoLinks.get(`${playerName.toLowerCase()}::${String(demon.level.id).trim()}`)
+                                    videoUrl: demon?.level.id != null
+                                        ? videoLinks.get(`${playerName.toLowerCase()}::${String(demon.level.id).trim().toLowerCase()}`)
                                         : null
                                 };
                             })

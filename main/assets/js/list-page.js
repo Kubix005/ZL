@@ -65,6 +65,29 @@ function getDemonNameFromCard(card) {
     return (titleElement || nameElement)?.textContent.trim() || "";
 }
 
+function getLevelTags(level) {
+    const tagValue = level.Tag ?? level.tag;
+    const tags = Array.isArray(tagValue)
+        ? tagValue
+        : tagValue == null
+            ? []
+            : [tagValue];
+    const seenTags = new Set();
+
+    return tags
+        .map(tag => String(tag ?? "").trim())
+        .filter(tag => {
+            const key = tag.toLowerCase();
+
+            if (!key || seenTags.has(key)) {
+                return false;
+            }
+
+            seenTags.add(key);
+            return true;
+        });
+}
+
 
 // =====================================================
 // ŁADOWANIE LEVELS.JSON
@@ -196,6 +219,8 @@ function generateDemonCards() {
 
         // ID levela
         card.dataset.demonId = String(level.id);
+        const levelTags = getLevelTags(level);
+        card.dataset.tags = JSON.stringify(levelTags.map(tag => tag.toLowerCase()));
 
 
         // =============================================
@@ -371,6 +396,21 @@ function generateDemonCards() {
                     built.textContent = `Zbudowane przez: ${builtBy.join(", ")}`;
                     name.appendChild(built);
                 }
+            }
+
+            if (levelTags.length) {
+                const tags = document.createElement("span");
+                tags.className = "level-tags";
+                tags.setAttribute("aria-label", "Tagi");
+
+                levelTags.forEach(tag => {
+                    const tagElement = document.createElement("span");
+                    tagElement.className = "level-tag";
+                    tagElement.textContent = tag;
+                    tags.appendChild(tagElement);
+                });
+
+                name.appendChild(tags);
             }
         }
 
@@ -921,6 +961,8 @@ function setupSearch() {
                     const nameLower =
                         demonName.toLowerCase();
 
+                    const matchingTags = JSON.parse(card.dataset.tags || "[]")
+                        .filter(tag => tag.includes(query));
 
                     const rank =
                         getDemonRank(card);
@@ -937,6 +979,8 @@ function setupSearch() {
                     if (
 
                         nameLower.includes(query) ||
+
+                        matchingTags.length > 0 ||
 
                         rankLower.includes(query) ||
 
@@ -970,6 +1014,9 @@ function setupSearch() {
                                 <span>
                                     ${escapeHTML(demonName)}
                                 </span>
+                                ${matchingTags.length
+                                    ? `<span class="search-result-tags">${matchingTags.map(escapeHTML).join(", ")}</span>`
+                                    : ""}
 
                             </div>
 
@@ -1014,7 +1061,7 @@ function setupSearch() {
                 searchResults.innerHTML = `
 
                     <div class="search-no-results">
-                        No players or demons found.
+                        No players, demons or tags found.
                     </div>
 
                 `;

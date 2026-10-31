@@ -6,21 +6,25 @@
     },
     {
         "name":"Larpiety",
-        "id":"144018294"
+        "id":"144018294",
+        "tag":["Wave"]
     },
     {
         "name":"Goostaw Challenge",
-        "id":"148183775"
+        "id":"148183775",
+        "tag":["Ship"]
     },
     {
         "name":"Wave Challenge X",
         "id":"111701880",
-        "AddedAt":"2026-10-26"
+        "AddedAt":"2026-10-26",
+        "tag":["Wave"]
     },
      {
         "name":"Mangetsuu 2",
         "id":"148008360",
-        "AddedAt":"2026-10-24"
+        "AddedAt":"2026-10-24",
+        "tag":["Cube"]
     },
     {
         "name":"Speedrun top 5",
@@ -29,7 +33,8 @@
     },
     {
         "name":"santa",
-        "id":"150505899"
+        "id":"150505899",
+        "tag":["Wave"]
     },
     {
         "name":"Shippppppppppp",
@@ -38,12 +43,14 @@
     },
     {
         "name":"Lacewing",
-        "id":"148430500"
+        "id":"148430500",
+        "tag":["Overall"]
     },
     {
         "name":"Nudbet Circles",
         "id":"111789301",
-        "AddedAt":"2026-10-26"
+        "AddedAt":"2026-10-26",
+        "tag":["Wave"]
     },
     {
         "name":"Gooslaw Challenge",

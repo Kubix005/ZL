@@ -451,6 +451,31 @@ body::before {
     text-shadow: none;
 }
 
+.level-tags {
+    display: flex;
+    flex: 0 0 100%;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 4px;
+}
+
+.level-tag {
+    padding: 3px 7px;
+    color: #ffd54f;
+    background: rgba(255, 193, 7, 0.12);
+    border: 1px solid rgba(255, 213, 79, 0.35);
+    border-radius: 4px;
+    font: 11px/1.2 Arial, sans-serif;
+    letter-spacing: 0;
+    text-shadow: none;
+}
+
+.search-result-tags {
+    margin-left: 8px;
+    color: #ffd54f;
+    font: 11px Arial, sans-serif;
+}
+
 
 /* ZIELONY AKCENT PO LEWEJ */
 

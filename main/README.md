@@ -30,11 +30,13 @@ Wpis gracza ZCL ma format:
 }
 ```
 
+Opcjonalnie level ZCL może mieć tagi w polu `Tag`, zapisane jako tablica tekstów, np. `"Tag": ["Ship", "Cube", "Ball", "Learny"]`. Tagi można wyszukiwać w globalnej wyszukiwarce; na kartach ZCL są wyświetlane pod nazwą levelu na żółto.
+
 `Verified` i `Built` są listami nazw wyzwań przypisanych danemu graczowi; jeśli gracz nie ma jeszcze takich wpisów, użyj pustej tablicy. Gdy nazwa wyzwania istnieje na ZCL, karta wyzwania pokazuje graczy z pól `Verified` („Zweryfikowane przez”) i `Built` („Zbudowane przez”). Wyzwanie z `Verified` liczy się jako completion w ZCL, tak samo jak wpis w `ChallengeDemons`; to samo wyzwanie zapisane w obu polach liczy się tylko raz. `Built` nie wpływa na ukończenia ani punkty.
 
 Podstrony rankingu, ostatnich ukończeń, zwycięzców i porównania wybierają odpowiedni plik graczy i zestaw ukończeń. Linki otwierane z ZCL przekazują `?list=zcl`, dzięki czemu korzystają z `lists/challenge/levels.json` i `challenge-players.json`; bez tego parametru wyświetlane są dane ZLL z `lists/zll/levels.json` i `players.json`.
 
-Linki do filmów z ukończeń ZCL zapisuj w `links.json`. Każdy wpis łączy nazwę gracza, listę ID wyzwań z `lists/challenge/levels.json` pokazanych w filmie i adres tego filmu:
+Linki do filmów z ukończeń zapisuj osobno dla każdej listy: ZCL w `links.json`, a ZLL w `lists/zll/levels-links.json`. Oba pliki używają tego samego formatu; każdy wpis łączy nazwę gracza, listę ID leveli z odpowiedniego `levels.json` pokazanych w filmie i adres tego filmu:
 
 ```json
 [
@@ -46,7 +48,7 @@ Linki do filmów z ukończeń ZCL zapisuj w `links.json`. Każdy wpis łączy na
 ]
 ```
 
-W rankingu ZCL kafelek ukończonego wyzwania staje się linkiem do filmu, jeśli istnieje pasujący wpis dla gracza i ID wyzwania. Jeden film może mieć kilka ID w `levelId`; każdy z tych kafelków otworzy to samo wideo. Link otwiera się w nowej karcie. Jeśli dla wyzwania jest osobny film, dodaj dla niego osobny obiekt. Dla zachowania zgodności nadal akceptowane jest pojedyncze ID jako tekst; przy braku linków plik może zawierać pustą tablicę `[]`.
+W rankingu odpowiedniej listy kafelek ukończonego poziomu staje się linkiem do filmu, jeśli istnieje pasujący wpis dla gracza i ID poziomu. Jeden film może mieć kilka ID w `levelId`; każdy z tych kafelków otworzy to samo wideo. Link otwiera się w nowej karcie. Jeśli dla poziomu jest osobny film, dodaj dla niego osobny obiekt. Dla zachowania zgodności nadal akceptowane jest pojedyncze ID jako tekst; przy braku linków plik może zawierać pustą tablicę `[]`.
 
 Zakładka „Nowe Levele!” pokazuje aktywne levele dodane w ciągu ostatnich 7 dni. Przy dodawaniu wpisu do odpowiedniego `levels.json` ustaw pole `AddedAt` na datę w formacie `YYYY-MM-DD`; starsze wpisy bez tej daty nie pojawią się w zakładce. Pole `addedAt` jest także obsługiwane dla zgodności. W szczegółach gracza w leaderboardzie ukończone levele z tej zakładki mają oznaczenie `NEW` obok miejsca na liście.
 
