@@ -368,15 +368,35 @@
                     .slice(0, 150)
                     .map((level, index) => ({
                         name: String(level.name).trim(),
+                        id: level.id == null ? null : String(level.id).trim(),
                         rank: index + 1,
                         points: getPoints(index + 1)
                     }));
-                ranksByName = new Map(
-                    demonPool.map(demon => [demon.name.toLowerCase(), demon.rank])
-                );
+                const namesByIdentifier = new Map();
+                ranksByName = new Map();
+
+                demonPool.forEach(demon => {
+                    const nameKey = demon.name.toLowerCase();
+                    ranksByName.set(nameKey, demon.rank);
+                    namesByIdentifier.set(nameKey, demon.name);
+
+                    if (demon.id) {
+                        const idKey = demon.id.toLowerCase();
+
+                        if (!ranksByName.has(idKey)) {
+                            ranksByName.set(idKey, demon.rank);
+                            namesByIdentifier.set(idKey, demon.name);
+                        }
+                    }
+                });
 
                 const players = playersData.map(player => {
-                    const demons = getPlayerCompletions(player);
+                    const demons = [...new Set(
+                        getPlayerCompletions(player).map(demonName => {
+                            const name = String(demonName).trim();
+                            return namesByIdentifier.get(name.toLowerCase()) || name;
+                        })
+                    )];
                     const points = demons.reduce((total, demonName) => {
                         if (!demonName) {
                             return total;

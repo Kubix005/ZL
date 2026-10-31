@@ -706,7 +706,19 @@ async function loadLeaderboard() {
                 details.hidden =
                     true;
 
-                const demonCards = player.demons.map(demon => `
+                const demonCards = player.demons
+                    .sort((a, b) => {
+                        if (a.rank == null) {
+                            return b.rank == null ? 0 : 1;
+                        }
+
+                        if (b.rank == null) {
+                            return -1;
+                        }
+
+                        return a.rank - b.rank;
+                    })
+                    .map(demon => `
                     ${demon.videoUrl
                         ? `<a class="leaderboard-demon leaderboard-demon-link" href="${escapeHTML(demon.videoUrl)}" target="_blank" rel="noopener noreferrer" title="Otwórz wideo ukończenia: ${escapeHTML(demon.name)}">`
                         : `<div class="leaderboard-demon">`}

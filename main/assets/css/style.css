@@ -1282,7 +1282,7 @@ body::before {
     margin-bottom: 0;
 
     background:
-        linear-gradient(105deg, rgba(25, 92, 160, 0.24), rgba(4, 22, 4, 0.92) 48%, rgba(12, 18, 12, 0.96)),
+        linear-gradient(105deg, rgba(25, 92, 160, 0.24), rgba(4, 8, 12, 0.92) 48%, rgba(7, 15, 24, 0.96)),
         #0d1e30;
 
     border: 1px solid rgba(65, 145, 220, 0.24);
@@ -1313,7 +1313,7 @@ body::before {
 .leaderboard-row:hover {
 
     background:
-        linear-gradient(105deg, rgba(45, 135, 215, 0.36), rgba(8, 34, 8, 0.96) 55%, rgba(18, 26, 18, 0.98)),
+        linear-gradient(105deg, rgba(45, 135, 215, 0.36), rgba(5, 12, 20, 0.96) 55%, rgba(10, 20, 32, 0.98)),
         #152b42;
 
     border-color: rgba(95, 175, 245, 0.52);
