@@ -1,8 +1,72 @@
+const LIST_PAGE_CONTEXT = (() => {
+    const isChallengeList =
+        new URLSearchParams(window.location.search).get("list") === "zcl";
+
+    return {
+        isChallengeList,
+        levelsUrl: isChallengeList
+            ? "./lists/challenge/levels.json"
+            : "./lists/zll/levels.json",
+        playersUrl: isChallengeList
+            ? "./challenge-players.json"
+            : "./players.json",
+        completionField: isChallengeList ? "ChallengeDemons" : "Demons"
+    };
+})();
+
+function getPlayerCompletions(player) {
+    const completionFields = [LIST_PAGE_CONTEXT.completionField];
+
+    if (LIST_PAGE_CONTEXT.isChallengeList) {
+        completionFields.push("Verified");
+    }
+
+    const completions = completionFields.flatMap(field =>
+        Array.isArray(player[field]) ? player[field] : []
+    );
+    const seenCompletions = new Set();
+
+    return completions.filter(completion => {
+        const name = String(completion ?? "").trim();
+        const key = name.toLowerCase();
+
+        if (!key || seenCompletions.has(key)) {
+            return false;
+        }
+
+        seenCompletions.add(key);
+        return true;
+    }).map(String);
+}
+
+if (LIST_PAGE_CONTEXT.isChallengeList) {
+    const listSpecificPages = new Set([
+        "leaderboard.html",
+        "recently.html",
+        "winners.html",
+        "compare.html",
+        "new-levels.html",
+        "authors.html"
+    ]);
+
+    document.querySelectorAll(".page-links a, .action-links a").forEach(link => {
+        const url = new URL(link.href, window.location.href);
+        const pageName = url.pathname.split("/").pop();
+
+        if (listSpecificPages.has(pageName)) {
+            url.searchParams.set("list", "zcl");
+            link.href = url.toString();
+        } else if (pageName === "prediction.html" || pageName === "progress.html") {
+            link.remove();
+        }
+    });
+}
+
 function getPoints(rank) {
     const maxPoints = 350;
     const top50Points = 50;
     const minPoints = 1;
-    const curveEndRank = 50;
+    const curveEndRank = 20;
     const maxRank = 150;
     let points;
 

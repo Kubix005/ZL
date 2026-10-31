@@ -3,12 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zwariowany Challenge List</title>
-    <link rel="stylesheet" href="../../assets/css/style.css?v=1.3.2">
+    <title>Zwariowany Challenge List (ZCL)</title>
+    <link rel="stylesheet" href="../../assets/css/style.css?v=1.3.8">
     <link rel="stylesheet" href="../../assets/css/lists.css?v=1.3.2">
-    <link rel="stylesheet" href="../../assets/css/challenge.css?v=1.3.2">
 </head>
-<body>
+<body
+    data-list-name="ZCL"
+    data-levels-url="./levels.json"
+    data-players-url="../../challenge-players.json"
+    data-aredl-ranks-url=""
+    data-completion-field="ChallengeDemons"
+>
     <header id="hejder">
         <a href="../../index.html" class="header-home">Zwariowana Lista</a>
     </header>
@@ -18,28 +23,41 @@
         <a href="./index.html" aria-current="page">Zwariowany Challenge List</a>
     </nav>
 
-    <main class="challenge-page">
-        <h1 class="challenge-title">Zwariowany Challenge List</h1>
-        <p class="challenge-description">
-            Osobna lista wyzwań z własną punktacją i rankingiem graczy.
-        </p>
+    <div class="action-links">
+        <a href="../../leaderboard.html?list=zcl" class="leaderboard-button">LEADERBOARD</a>
+        <a href="../../recently.html?list=zcl" id="recently-button" class="leaderboard-button recently-button">OSTATNIO WBITE</a>
+        <a href="../../winners.html?list=zcl" class="leaderboard-button">ZWYCIĘZCY LEVELA</a>
+        <a href="../../compare.html?list=zcl" class="leaderboard-button">PORÓWNAJ GRACZY</a>
+        <a href="../../new-levels.html?list=zcl" class="leaderboard-button">NOWE LEVELE!</a>
+        <a href="../../authors.html?list=zcl" class="leaderboard-button">AUTOR</a>
+    </div>
 
-        <section class="challenge-section" aria-labelledby="challenge-levels-title">
-            <h2 id="challenge-levels-title">Lista wyzwań</h2>
-            <div id="challenge-levels" class="challenge-levels" aria-live="polite">
-                <p class="challenge-message">Wczytywanie listy wyzwań...</p>
-            </div>
-        </section>
+    <div class="search-panel">
+        <div class="search-header">
+            <span>🔍</span>
+            SEARCH
+        </div>
+        <div class="search-input-wrapper">
+            <input
+                type="text"
+                id="global-search"
+                placeholder="Search player or challenge..."
+                autocomplete="off"
+            >
+            <button id="clear-search" type="button">×</button>
+        </div>
+        <div id="search-results"></div>
+    </div>
 
-        <section class="challenge-section" aria-labelledby="challenge-ranking-title">
-            <h2 id="challenge-ranking-title">Ranking graczy Challenge</h2>
-            <div id="challenge-leaderboard" class="challenge-leaderboard" aria-live="polite">
-                <p class="challenge-message">Wczytywanie rankingu...</p>
-            </div>
-        </section>
+    <main class="layout">
+        <aside id="ranking">
+            <div class="ranking-title">ZCL — ZWARIOWANY CHALLENGE LIST</div>
+            <div id="ranking-list"></div>
+        </aside>
+        <section id="demons"></section>
     </main>
 
-    <script src="../../assets/js/shared.js?v=1.3.0"></script>
-    <script src="../../assets/js/challenge.js?v=1.3.0"></script>
+    <script src="../../assets/js/shared.js?v=1.3.4"></script>
+    <script src="../../assets/js/list-page.js?v=1.4.9"></script>
 </body>
 </html>

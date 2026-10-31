@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zwariowana Lista - Porównaj graczy</title>
-    <link rel="stylesheet" href="./assets/css/style.css?v=1.3.2">
+    <link rel="stylesheet" href="./assets/css/style.css?v=1.3.4">
 </head>
 <body class="compare-body">
     <header id="hejder">
@@ -15,7 +15,8 @@
         <a href="leaderboard.html" class="leaderboard-button">RANKING GRACZY</a>
         <a href="recently.html" class="leaderboard-button recently-button">OSTATNIO WBITE</a>
         <a href="winners.html" class="leaderboard-button">ZWYCIĘZCY LEVELA</a>
-        <a href="progress.html" class="leaderboard-button">PROGRES</a>
+        <a href="new-levels.html" class="leaderboard-button">NOWE LEVELE!</a>
+        <a href="authors.html" class="leaderboard-button">AUTOR</a>
     </nav>
 
     <main class="compare-page">
@@ -42,10 +43,10 @@
         </section>
     </main>
 
-    <script src="./assets/js/shared.js?v=1.3.0"></script>
+    <script src="./assets/js/shared.js?v=1.3.4"></script>
     <script>
-        const PLAYERS_URL = "./players.json";
-        const LEVELS_URL = "./levels.json";
+        const PLAYERS_URL = LIST_PAGE_CONTEXT.playersUrl;
+        const LEVELS_URL = LIST_PAGE_CONTEXT.levelsUrl;
 
         const playerASelect = document.getElementById("player-a");
         const playerBSelect = document.getElementById("player-b");
@@ -60,7 +61,7 @@
                 const option = document.createElement("option");
                 option.value = String(index);
                 option.textContent =
-                    `${player.name} — ${player.points.toLocaleString("pl-PL")} RK`;
+                    `${player.name} — ${player.points.toLocaleString("pl-PL")} ZLP`;
                 select.appendChild(option);
             });
 
@@ -261,21 +262,21 @@
                     : [...catchUpPlans.entries()];
                 const planCards = displayedPlans.map(([count, plan]) => `
                     <article class="catch-up-option">
-                        <h3>${count} ${count === 1 ? "demon" : "demony"}</h3>
-                        <strong class="catch-up-total">+${(showAlternativePlans ? plan.totalPoints : plan.netPoints).toLocaleString("pl-PL")} RK${showAlternativePlans ? "" : ""}</strong>
+                        <h3>${count} ${LIST_PAGE_CONTEXT.isChallengeList ? count === 1 ? "wyzwanie" : "wyzwania" : count === 1 ? "demon" : "demony"}</h3>
+                        <strong class="catch-up-total">+${(showAlternativePlans ? plan.totalPoints : plan.netPoints).toLocaleString("pl-PL")} ZLP${showAlternativePlans ? "" : ""}</strong>
                         <ol class="catch-up-list">
                             ${plan.demons.map(demon => `
                                 <li>
                                     <span class="catch-up-rank">#${demon.rank}</span>
                                     <span class="catch-up-name">${escapeHTML(demon.name)}</span>
-                                    <strong>+${demon.points.toLocaleString("pl-PL")} RK</strong>
+                                    <strong>+${demon.points.toLocaleString("pl-PL")} ZLP</strong>
                                 </li>
                             `).join("")}
                         </ol>
                         ${!showAlternativePlans && plan.replacedDemons.length
                             ? `<p class="catch-up-replaced">
                                     Z puli wypadają: ${plan.replacedDemons.map(demon => escapeHTML(demon.name)).join(", ")}
-                                    (−${plan.replacedDemons.reduce((total, demon) => total + demon.points, 0).toLocaleString("pl-PL")} RK)
+                                    (−${plan.replacedDemons.reduce((total, demon) => total + demon.points, 0).toLocaleString("pl-PL")} ZLP)
                                </p>`
                             : !showAlternativePlans
                                 ? '<p class="catch-up-replaced">Wolne miejsce w puli — nic nie wypada.</p>'
@@ -283,7 +284,7 @@
                     </article>
                 `).join("");
                 const recommendationContent = planCards ||
-                    '<p class="compare-message">Brak dostępnych demonów.</p>';
+                    `<p class="compare-message">Brak dostępnych ${LIST_PAGE_CONTEXT.isChallengeList ? "wyzwań" : "demonów"}.</p>`;
 
                 catchUpMarkup = `
                     <div class="catch-up-plan">
@@ -309,15 +310,15 @@
             resultContainer.innerHTML = `
                 <div class="compare-player-score">
                     <span>${escapeHTML(playerA.name)}</span>
-                    <strong>${playerA.points.toLocaleString("pl-PL")} RK</strong>
+                    <strong>${playerA.points.toLocaleString("pl-PL")} ZLP</strong>
                 </div>
                 <div class="compare-difference">
                     <span>${difference === 0 ? "Wynik" : "Brakuje"}</span>
-                    <strong>${difference === 0 ? "0 RK" : `${difference.toLocaleString("pl-PL")} RK`}</strong>
+                    <strong>${difference === 0 ? "0 ZLP" : `${difference.toLocaleString("pl-PL")} ZLP`}</strong>
                 </div>
                 <div class="compare-player-score">
                     <span>${escapeHTML(playerB.name)}</span>
-                    <strong>${playerB.points.toLocaleString("pl-PL")} RK</strong>
+                    <strong>${playerB.points.toLocaleString("pl-PL")} ZLP</strong>
                 </div>
                 ${catchUpMarkup}
             `;
@@ -375,7 +376,7 @@
                 );
 
                 const players = playersData.map(player => {
-                    const demons = Array.isArray(player.Demons) ? player.Demons : [];
+                    const demons = getPlayerCompletions(player);
                     const points = demons.reduce((total, demonName) => {
                         if (!demonName) {
                             return total;
@@ -418,6 +419,9 @@
             }
         }
 
+        if (LIST_PAGE_CONTEXT.isChallengeList) {
+            document.title = "Zwariowana Lista - Porównaj graczy ZCL";
+        }
         document.addEventListener("DOMContentLoaded", loadComparison);
     </script>
 </body>

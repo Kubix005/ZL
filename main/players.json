@@ -176,11 +176,11 @@
     ]
   },
    {
-    "Player":"Fabi",
-    "Demons":[
-      "Black Blizzard",
-      "Moment",
-      "Gravity"
-    ]
-  }
+     "Player":"Fabi",
+     "Demons":[
+       "Black Blizzard",
+       "Moment",
+       "Gravity"
+     ]
+   }
 ]

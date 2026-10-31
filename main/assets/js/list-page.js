@@ -1,16 +1,69 @@
-const LEVELS_URL = "../../levels.json";
-const PLAYERS_URL = "../../players.json";
-const PROGRESS_URL = "../../progress.json";
-const AREDL_RANKS_URL = "../../aredl-ranks.json";
+const LIST_CONFIG = document.body.dataset;
+const LEVELS_URL = LIST_CONFIG.levelsUrl || "../../levels.json";
+const PLAYERS_URL = LIST_CONFIG.playersUrl || LIST_PAGE_CONTEXT.playersUrl;
+const PLAYERS_FILE = PLAYERS_URL.split("/").pop();
+const AREDL_RANKS_URL = LIST_CONFIG.aredlRanksUrl ?? "../../aredl-ranks.json";
+const COMPLETION_FIELD = LIST_CONFIG.completionField || "Demons";
+const LIST_NAME = LIST_CONFIG.listName || "ZLL";
 
 const THUMBNAIL_URL =
     "https://raw.githubusercontent.com/All-Rated-Extreme-Demon-List/Thumbnails/main/levels/cards";
 
 let levels = [];
 let players = [];
-let progressEntries = [];
 let aredlRanks = {};
 let legacyLevelNames = new Set();
+
+function getChallengeCreditNames(levelName, field) {
+    const levelKey = String(levelName).trim().toLowerCase();
+
+    return [...new Set(players
+        .filter(player =>
+            Array.isArray(player[field]) &&
+            player[field].some(value =>
+                String(value).trim().toLowerCase() === levelKey
+            )
+        )
+        .map(player => player.Player)
+        .filter(Boolean))];
+}
+
+function isNewLevel(level) {
+    const addedAt = level.AddedAt ?? level.addedAt;
+
+    if (typeof addedAt !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(addedAt)) {
+        return false;
+    }
+
+    const [year, month, day] = addedAt.split("-").map(Number);
+    const timestamp = Date.UTC(year, month - 1, day);
+    const date = new Date(timestamp);
+
+    if (
+        date.getUTCFullYear() !== year ||
+        date.getUTCMonth() !== month - 1 ||
+        date.getUTCDate() !== day
+    ) {
+        return false;
+    }
+
+    const now = new Date();
+    const today = Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate()
+    );
+    const firstIncludedDay = today - 6 * 24 * 60 * 60 * 1000;
+
+    return timestamp >= firstIncludedDay && timestamp <= today;
+}
+
+function getDemonNameFromCard(card) {
+    const nameElement = card?.querySelector(".demon-name");
+    const titleElement = nameElement?.querySelector(".demon-name-title");
+
+    return (titleElement || nameElement)?.textContent.trim() || "";
+}
 
 
 // =====================================================
@@ -86,6 +139,10 @@ async function loadLevels() {
 
 
 async function loadAredlRanks() {
+    if (!AREDL_RANKS_URL) {
+        aredlRanks = {};
+        return;
+    }
 
     try {
 
@@ -145,6 +202,12 @@ function generateDemonCards() {
         // RANK
         // =============================================
 
+        const rankHeader =
+            document.createElement("div");
+
+        rankHeader.className =
+            "top-level-header";
+
         const rankElement =
             document.createElement("div");
 
@@ -158,6 +221,26 @@ function generateDemonCards() {
             `TOP ${rank}`;
 
         rankElement.appendChild(rankLabel);
+
+        if (isNewLevel(level)) {
+            const newBadge = document.createElement("span");
+            newBadge.className = "top-new-badge";
+            newBadge.textContent = "NEW";
+            rankElement.appendChild(newBadge);
+        }
+
+        const levelDetails = document.createElement("span");
+        levelDetails.className = "top-level-details";
+        const authorNames = Array.isArray(level.Autor)
+            ? level.Autor.filter(author => typeof author === "string" && author.trim())
+            : typeof level.Autor === "string" && level.Autor.trim()
+                ? [level.Autor.trim()]
+                : [];
+        levelDetails.textContent = [
+            `ID: ${level.id}`,
+            ...authorNames.map(author => `Autor: ${author}`)
+        ].join(" · ");
+        rankHeader.append(rankElement, levelDetails);
 
         const aredlRank =
             aredlRanks[String(level.id)];
@@ -181,7 +264,7 @@ function generateDemonCards() {
             aredlLink.textContent =
                 `AREDL #${aredlRank}`;
 
-            rankElement.appendChild(aredlLink);
+            rankHeader.appendChild(aredlLink);
         }
 
 
@@ -239,7 +322,7 @@ function generateDemonCards() {
             "image-points";
 
         points.textContent =
-            `${getPoints(rank)} RK`;
+            `${getPoints(rank)} ZLP`;
 
         imageWrapper.appendChild(points);
 
@@ -254,76 +337,41 @@ function generateDemonCards() {
         name.className =
             "demon-name";
 
-        name.textContent =
-            level.name;
+        const nameTitle = document.createElement("span");
+        nameTitle.className = "demon-name-title";
+        nameTitle.textContent = level.name;
+        name.appendChild(nameTitle);
 
 
         // =============================================
         // SKŁADANIE KARTY
         // =============================================
 
-        card.appendChild(rankElement);
+        card.appendChild(rankHeader);
 
         card.appendChild(imageWrapper);
 
         card.appendChild(name);
 
-        const levelProgress = getProgressForLevel(level);
+        if (COMPLETION_FIELD === "ChallengeDemons") {
+            const verifiedBy = getChallengeCreditNames(level.name, "Verified");
+            const builtBy = getChallengeCreditNames(level.name, "Built");
 
-        if (levelProgress.length > 0) {
-            const progressSection = document.createElement("div");
-            progressSection.className = "level-progress";
+            if (verifiedBy.length || builtBy.length) {
+                if (verifiedBy.length) {
+                    const verified = document.createElement("span");
+                    verified.className = "challenge-credit";
+                    verified.textContent = `Zweryfikowane przez: ${verifiedBy.join(", ")}`;
+                    name.appendChild(verified);
+                }
 
-            const progressTitle = document.createElement("div");
-            progressTitle.className = "level-progress-title";
-            progressTitle.textContent = "PROGRES";
-            progressSection.appendChild(progressTitle);
-
-            const progressGrid = document.createElement("div");
-            progressGrid.className = "level-progress-grid";
-
-            levelProgress.forEach(entry => {
-                const progressRow = document.createElement("div");
-                progressRow.className = "level-progress-entry";
-
-                const playerName = document.createElement("span");
-                playerName.className = "level-progress-player";
-                playerName.textContent = entry.player;
-
-                const progressTrack = document.createElement("span");
-                progressTrack.className = "level-progress-track";
-                progressTrack.setAttribute("role", "img");
-                progressTrack.setAttribute(
-                    "aria-label",
-                    `Progres: ${entry.procent.label}`
-                );
-
-                entry.procent.segments.forEach(segment => {
-                    const progressFill = document.createElement("span");
-                    progressFill.className = "level-progress-fill";
-                    if (segment.reverseGradient) {
-                        progressFill.classList.add("progress-fill-reversed");
-                    }
-                    progressFill.style.left = `${segment.start}%`;
-                    progressFill.style.width =
-                        `${segment.end - segment.start}%`;
-                    progressTrack.appendChild(progressFill);
-                });
-
-                const percentage = document.createElement("span");
-                percentage.className = "level-progress-percentage";
-                percentage.textContent = entry.procent.label;
-
-                progressRow.append(
-                    playerName,
-                    progressTrack,
-                    percentage
-                );
-                progressGrid.appendChild(progressRow);
-            });
-
-            progressSection.appendChild(progressGrid);
-            card.appendChild(progressSection);
+                if (builtBy.length) {
+                    const built = document.createElement("span");
+                    built.className = "challenge-credit";
+                    built.textContent = `Zbudowane przez: ${builtBy.join(", ")}`;
+                    name.appendChild(built);
+                }
+            }
         }
 
         container.appendChild(card);
@@ -385,7 +433,7 @@ function generateRanking() {
             "points";
 
         pointsText.textContent =
-            `${getPoints(rank)} RK`;
+            `${getPoints(rank)} ZLP`;
 
 
         item.appendChild(rankText);
@@ -435,17 +483,15 @@ function findDemonByName(name) {
         [...document.querySelectorAll(".demon-card")]
             .find(card => {
 
-                const nameElement =
-                    card.querySelector(".demon-name");
+                const demonName = getDemonNameFromCard(card);
 
-                if (!nameElement) {
+                if (!demonName) {
                     return false;
                 }
 
                 return (
-                    nameElement.textContent
+                    demonName
                         .toLowerCase()
-                        .trim()
                     === searchName
                 );
 
@@ -516,7 +562,7 @@ async function loadPlayers() {
 
         if (!Array.isArray(data)) {
             throw new Error(
-                "players.json musi zawierać tablicę"
+                `${PLAYERS_FILE} musi zawierać tablicę`
             );
         }
 
@@ -531,14 +577,14 @@ async function loadPlayers() {
 
                 tag: player.tag,
                 recent: player.recent,
+                Verified: Array.isArray(player.Verified)
+                    ? player.Verified.map(String)
+                    : [],
+                Built: Array.isArray(player.Built)
+                    ? player.Built.map(String)
+                    : [],
 
-                Demons:
-                    Array.isArray(player.Demons)
-                        ? player.Demons.map(
-                            demon =>
-                                String(demon)
-                        )
-                        : []
+                Demons: getPlayerCompletions(player)
 
             }));
 
@@ -551,116 +597,12 @@ async function loadPlayers() {
     } catch (error) {
 
         console.error(
-            "Błąd players.json:",
+            `Błąd ${PLAYERS_FILE}:`,
             error
         );
 
     }
 }
-
-async function loadProgress() {
-    try {
-        const response = await fetch(PROGRESS_URL, {
-            cache: "no-cache"
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (!Array.isArray(data)) {
-            throw new Error("progress.json musi zawierać tablicę");
-        }
-
-        progressEntries = data.flatMap((entry, index) => {
-            const procent = parseProgressValue(entry?.procent);
-            const isValid =
-                entry &&
-                typeof entry["level-name"] === "string" &&
-                entry["level-name"].trim() &&
-                entry["level-id"] !== undefined &&
-                entry["level-id"] !== null &&
-                String(entry["level-id"]).trim() &&
-                typeof entry.player === "string" &&
-                entry.player.trim() &&
-                procent;
-
-            if (!isValid) {
-                console.warn(
-                    `Pomijam nieprawidłowy wpis progress.json (indeks ${index}).`
-                );
-                return [];
-            }
-
-            return [{
-                "level-name": entry["level-name"].trim(),
-                "level-id": String(entry["level-id"]).trim(),
-                player: entry.player.trim(),
-                procent
-            }];
-        });
-    } catch (error) {
-        console.error("Błąd progress.json:", error);
-        progressEntries = [];
-    }
-}
-
-function playerHasCompletedLevel(player, level) {
-    const levelId = String(level.id);
-    const levelName = String(level.name).trim().toLowerCase();
-
-    return player.Demons.some(demon => {
-        const completedDemon = String(demon).trim();
-        return completedDemon === levelId ||
-            completedDemon.toLowerCase() === levelName;
-    });
-}
-
-function getProgressForLevel(level) {
-    const entriesByPlayer = new Map();
-
-    progressEntries.forEach(entry => {
-        if (entry["level-id"] !== String(level.id)) {
-            return;
-        }
-
-        const player = players.find(existingPlayer =>
-            existingPlayer.Player.toLowerCase() === entry.player.toLowerCase()
-        );
-
-        if (player && playerHasCompletedLevel(player, level)) {
-            return;
-        }
-
-        const playerKey = entry.player.toLowerCase();
-        if (!entriesByPlayer.has(playerKey)) {
-            entriesByPlayer.set(playerKey, {
-                player: entry.player,
-                progressValues: []
-            });
-        }
-
-        entriesByPlayer.get(playerKey).progressValues.push(entry.procent);
-    });
-
-    return [...entriesByPlayer.values()].map(entry => ({
-        player: entry.player,
-        procent: combineProgressValues(entry.progressValues)
-    }));
-}
-
-function getProgressForPlayer(playerName) {
-    return levels.flatMap(level => {
-        const progress = getProgressForLevel(level).find(entry =>
-            entry.player.toLowerCase() === playerName.toLowerCase()
-        );
-
-        return progress ? [{ entry: progress, level }] : [];
-    });
-}
-
 
 // =====================================================
 // POKAŻ GRACZA
@@ -705,7 +647,7 @@ function showPlayer(player) {
         const card = findDemonById(demon) || findDemonByName(demon);
         const rank = getDemonRank(card);
         return total + (rank ? getPoints(rank) : 0);
-    }, 0)} RK
+    }, 0)} ZLP
 </span>
     `;
 
@@ -744,16 +686,8 @@ function showPlayer(player) {
                 getDemonRank(card);
 
 
-            const nameElement =
-                card.querySelector(
-                    ".demon-name"
-                );
-
-
             const demonName =
-                nameElement
-                    ? nameElement.textContent
-                    : demon;
+                getDemonNameFromCard(card) || demon;
 
 
             result.innerHTML = `
@@ -821,42 +755,6 @@ function showPlayer(player) {
         searchResults.appendChild(result);
 
     });
-
-    getProgressForPlayer(player.Player).forEach(({ entry, level }) => {
-        const result = document.createElement("div");
-        result.className = "search-result";
-
-        const main = document.createElement("div");
-        main.className = "search-result-main";
-
-        const type = document.createElement("span");
-        type.className = "search-result-type";
-        type.textContent = "PROGRES";
-
-        const levelName = document.createElement("span");
-        levelName.textContent = level.name;
-        main.append(type, levelName);
-
-        const percentage = document.createElement("span");
-        percentage.className = "search-result-points";
-        percentage.textContent = entry.procent.label;
-
-        result.append(main, percentage);
-        result.addEventListener("click", () => {
-            const card = findDemonById(level.id);
-
-            if (card) {
-                card.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center"
-                });
-                searchResults.style.display = "none";
-            }
-        });
-
-        searchResults.appendChild(result);
-    });
-
 
     searchResults.style.display =
         "block";
@@ -982,7 +880,7 @@ function setupSearch() {
                         </div>
 
                         <span class="search-result-points">
-                            ${player.Demons.length} DEMONS
+                            ${player.Demons.length} ${LIST_NAME === "ZCL" ? "CHALLENGES" : "DEMONS"}
                         </span>
 
                     `;
@@ -1013,21 +911,12 @@ function setupSearch() {
                 .querySelectorAll(".demon-card")
                 .forEach(card => {
 
-                    const nameElement =
-                        card.querySelector(
-                            ".demon-name"
-                        );
+                    const demonName =
+                        getDemonNameFromCard(card);
 
-
-                    if (!nameElement) {
+                    if (!demonName) {
                         return;
                     }
-
-
-                    const demonName =
-                        nameElement.textContent
-                            .trim();
-
 
                     const nameLower =
                         demonName.toLowerCase();
@@ -1194,7 +1083,7 @@ function setupRecentlyButton() {
     );
 
     if (recentLevel) {
-        button.style.backgroundImage = `linear-gradient(rgba(0, 35, 0, 0.42), rgba(0, 20, 0, 0.78)), url("${THUMBNAIL_URL}/${recentLevel.id}.webp")`;
+        button.style.backgroundImage = `linear-gradient(rgba(10, 35, 65, 0.42), rgba(10, 20, 40, 0.78)), url("${THUMBNAIL_URL}/${recentLevel.id}.webp")`;
         button.title = `${recentPlayer.Player} recently beat ${recentLevel.name}`;
     }
 }
@@ -1209,8 +1098,6 @@ document.addEventListener(
     async () => {
 
         await loadPlayers();
-
-        await loadProgress();
 
         await loadLevels();
 

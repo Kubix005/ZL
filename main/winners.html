@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zwariowana Lista - Zwycięzcy levela ZLL</title>
-    <link rel="stylesheet" href="./assets/css/style.css?v=1.3.2">
+    <link rel="stylesheet" href="./assets/css/style.css?v=1.3.4">
 </head>
 <body>
     <header id="hejder">
@@ -15,8 +15,8 @@
         <a href="leaderboard.html" class="leaderboard-button">LEADERBOARD</a>
         <a href="recently.html" class="leaderboard-button recently-button">OSTATNIO WBITE</a>
         <a href="compare.html" class="leaderboard-button">PORÓWNAJ GRACZY</a>
-        <a href="prediction.html" class="leaderboard-button">PREDYKCJA</a>
-        <a href="progress.html" class="leaderboard-button">PROGRES</a>
+        <a href="new-levels.html" class="leaderboard-button">NOWE LEVELE!</a>
+        <a href="authors.html" class="leaderboard-button">AUTOR</a>
     </nav>
 
     <main class="winners-page">
@@ -26,10 +26,11 @@
         </div>
     </main>
 
-    <script src="./assets/js/shared.js?v=1.3.0"></script>
+    <script src="./assets/js/shared.js?v=1.3.4"></script>
     <script>
-        const LEVELS_URL = "./levels.json";
-        const PLAYERS_URL = "./players.json";
+        const LEVELS_URL = LIST_PAGE_CONTEXT.levelsUrl;
+        const PLAYERS_URL = LIST_PAGE_CONTEXT.playersUrl;
+        const PLAYERS_FILE = PLAYERS_URL.split("/").pop();
         const THUMBNAIL_URL = "https://raw.githubusercontent.com/All-Rated-Extreme-Demon-List/Thumbnails/main/levels/cards";
 
         function normalizeName(name) {
@@ -64,7 +65,7 @@
                 ]);
 
                 if (!Array.isArray(levelsData) || !Array.isArray(players)) {
-                    throw new Error("Pliki levels.json i players.json muszą zawierać tablice.");
+                    throw new Error(`Pliki levels.json i ${PLAYERS_FILE} muszą zawierać tablice.`);
                 }
 
                 const levels = levelsData
@@ -76,11 +77,11 @@
 
                 players.forEach(player => {
                     const playerName = String(player.Player || "").trim();
-                    if (!playerName || !Array.isArray(player.Demons)) {
+                    if (!playerName) {
                         return;
                     }
 
-                    player.Demons.forEach(demonName => {
+                    getPlayerCompletions(player).forEach(demonName => {
                         const victors = victorsByLevel.get(normalizeName(demonName));
                         if (victors) {
                             victors.add(playerName);
@@ -123,6 +124,13 @@
             }
         }
 
+        document.querySelector(".winners-title").textContent =
+            LIST_PAGE_CONTEXT.isChallengeList
+                ? "ZWYCIĘZCY CHALLENGE'A"
+                : "ZWYCIĘZCY LEVELA";
+        if (LIST_PAGE_CONTEXT.isChallengeList) {
+            document.title = "Zwariowana Lista - Zwycięzcy challenge'a ZCL";
+        }
         document.addEventListener("DOMContentLoaded", loadLevelVictors);
     </script>
 </body>

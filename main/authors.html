@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zwariowana Lista - Autorzy</title>
+    <link rel="stylesheet" href="./assets/css/style.css?v=1.3.4">
+</head>
+<body>
+    <header id="hejder">
+        <a href="index.html" class="header-home">Zwariowana Lista</a>
+    </header>
+
+    <nav class="page-links" aria-label="Powiązane strony">
+        <a href="leaderboard.html" class="leaderboard-button">LEADERBOARD</a>
+        <a href="recently.html" class="leaderboard-button recently-button">OSTATNIO WBITE</a>
+        <a href="winners.html" class="leaderboard-button">ZWYCIĘZCY LEVELA</a>
+        <a href="compare.html" class="leaderboard-button">PORÓWNAJ GRACZY</a>
+        <a href="new-levels.html" class="leaderboard-button">NOWE LEVELE!</a>
+        <a href="authors.html" class="leaderboard-button" aria-current="page">AUTOR</a>
+    </nav>
+
+    <main class="authors-page">
+        <h1 class="authors-title">AUTORZY</h1>
+        <p id="authors-description" class="authors-description">
+            Levele i wyzwania według autorów.
+        </p>
+        <section id="authors-list" class="authors-list" aria-live="polite">
+            <p class="authors-message">Ładowanie autorów...</p>
+        </section>
+    </main>
+
+    <script src="./assets/js/shared.js?v=1.3.1"></script>
+    <script>
+        const LEVELS_URL = LIST_PAGE_CONTEXT.levelsUrl;
+        const THUMBNAIL_URL =
+            "https://raw.githubusercontent.com/All-Rated-Extreme-Demon-List/Thumbnails/main/levels/cards";
+
+        function escapeHTML(value) {
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function getAuthorNames(authorValue) {
+            const values = Array.isArray(authorValue) ? authorValue : [authorValue];
+
+            return values
+                .filter(value => typeof value === "string")
+                .flatMap(value => value.split(","))
+                .map(value => value.trim())
+                .filter(Boolean);
+        }
+
+        async function loadAuthors() {
+            const container = document.getElementById("authors-list");
+
+            try {
+                const response = await fetch(LEVELS_URL, { cache: "no-cache" });
+
+                if (!response.ok) {
+                    throw new Error(`Could not load levels data: HTTP ${response.status}`);
+                }
+
+                const allLevels = await response.json();
+
+                if (!Array.isArray(allLevels)) {
+                    throw new Error("levels.json must contain an array.");
+                }
+
+                const activeLevels = allLevels
+                    .filter(level => !isLegacyLevel(level))
+                    .slice(0, 150);
+                const authors = new Map();
+
+                activeLevels.forEach((level, index) => {
+                    getAuthorNames(level.Autor).forEach(author => {
+                        const key = author.toLocaleLowerCase("pl-PL");
+                        if (!authors.has(key)) {
+                            authors.set(key, { name: author, levels: [] });
+                        }
+                        authors.get(key).levels.push({ level, rank: index + 1 });
+                    });
+                });
+
+                document.getElementById("authors-description").textContent =
+                    LIST_PAGE_CONTEXT.isChallengeList
+                        ? "Wyzwania z Challenge List pogrupowane według autorów."
+                        : "Levele z ZLL pogrupowane według autorów.";
+                document.title = LIST_PAGE_CONTEXT.isChallengeList
+                    ? "Zwariowana Lista - Autorzy Challenge List"
+                    : "Zwariowana Lista - Autorzy ZLL";
+
+                const sortedAuthors = [...authors.values()].sort((a, b) =>
+                    a.name.localeCompare(b.name, "pl", { sensitivity: "base" })
+                );
+
+                if (!sortedAuthors.length) {
+                    container.innerHTML =
+                        '<p class="authors-message">Brak autorów w tej liście. Dodaj pole "Autor" do wpisów w levels.json.</p>';
+                    return;
+                }
+
+                container.innerHTML = sortedAuthors.map(author => `
+                    <article class="author-card">
+                        <h2 class="author-name">${escapeHTML(author.name)}</h2>
+                        <div class="author-levels">
+                            ${author.levels.map(({ level, rank }) => `
+                                <div class="author-level">
+                                    <img
+                                        src="${THUMBNAIL_URL}/${encodeURIComponent(String(level.id))}.webp"
+                                        alt=""
+                                        loading="lazy"
+                                    >
+                                    <div class="author-level-info">
+                                        <h3>${escapeHTML(level.name)}</h3>
+                                        <span>TOP ${rank} - ${getPoints(rank)} ZLP</span>
+                                    </div>
+                                </div>
+                            `).join("")}
+                        </div>
+                    </article>
+                `).join("");
+            } catch (error) {
+                console.error("Could not load authors:", error);
+                container.innerHTML =
+                    '<p class="authors-message">Nie udało się załadować autorów.</p>';
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", loadAuthors);
+    </script>
+</body>
+</html>

@@ -411,6 +411,10 @@ body::before {
 
 .demon-name {
     position: relative;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 14px;
 
     padding: 13px 18px 13px 20px;
 
@@ -438,6 +442,13 @@ body::before {
 
     box-shadow:
         inset 0 -1px 0 rgba(95, 175, 245, 0.05);
+}
+
+.challenge-credit {
+    color: rgba(195, 220, 245, 0.82);
+    font: 12px/1.5 Arial, sans-serif;
+    letter-spacing: 0;
+    text-shadow: none;
 }
 
 
@@ -549,13 +560,22 @@ body::before {
    TOP NUMBER
 ================================= */
 
+.top-level-header {
+    display: flex;
+    min-height: 45px;
+    align-items: center;
+    gap: 12px;
+    padding-right: 12px;
+    background: #07121f;
+}
+
 .top-number {
 
     width: fit-content;
     min-width: 120px;
     padding: 0 12px;
 
-    height: 45px;
+    min-height: 45px;
 
     display: flex;
 
@@ -565,7 +585,7 @@ body::before {
 
     gap: 8px;
 
-    white-space: nowrap;
+    max-width: 100%;
 
     background:
         linear-gradient(
@@ -591,6 +611,30 @@ body::before {
     position: relative;
 
     z-index: 2;
+}
+
+.top-level-details {
+    min-width: 0;
+    flex: 1;
+    color: rgba(255, 255, 255, 0.88);
+    font: 11px/1.3 Arial, sans-serif;
+    text-align: left;
+    overflow-wrap: anywhere;
+}
+
+.top-new-badge {
+    display: inline-flex;
+    min-height: 28px;
+    flex: 0 0 auto;
+    align-items: center;
+    padding: 0 8px;
+    background: linear-gradient(135deg, #176bb0, #125590);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+    font: 12px/1 Pusab, Arial Black, sans-serif;
+    letter-spacing: 0.03em;
+    text-shadow: 2px 2px 4px black;
 }
 
 
@@ -1340,6 +1384,22 @@ body::before {
 
 }
 
+.leaderboard-demon-link {
+    color: inherit;
+    text-decoration: none;
+    transition: background 0.2s ease, outline-color 0.2s ease;
+}
+
+.leaderboard-demon-link:hover {
+    background: rgba(66, 165, 245, 0.16);
+    outline: 1px solid rgba(66, 165, 245, 0.55);
+}
+
+.leaderboard-demon-link:focus-visible {
+    outline: 2px solid #42a5f5;
+    outline-offset: 2px;
+}
+
 .leaderboard-demon img {
 
     width: 56px;
@@ -1364,6 +1424,19 @@ body::before {
 
 }
 
+.leaderboard-demon-info {
+    display: grid;
+    min-width: 0;
+    flex: 1;
+    gap: 3px;
+}
+
+.leaderboard-demon-meta {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 11px;
+    overflow-wrap: anywhere;
+}
+
 .leaderboard-demon-rank {
 
     flex: 0 0 auto;
@@ -1372,6 +1445,19 @@ body::before {
 
     font-size: 12px;
 
+}
+
+.leaderboard-demon-new {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 5px;
+    color: #071b0d;
+    background: #79e08b;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+    vertical-align: 1px;
 }
 
 .leaderboard-demons-empty {
@@ -2067,6 +2153,139 @@ body.compare-body .catch-up-rank {
     border: 1px solid rgba(95, 175, 245, 0.2);
     border-radius: 8px;
     color: rgba(255, 255, 255, 0.6);
+    text-align: center;
+}
+
+.new-levels-page {
+    width: min(1100px, 90%);
+    margin: 40px auto 80px;
+}
+
+.new-levels-title {
+    margin-bottom: 8px;
+    font-size: 32px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.new-levels-description {
+    margin-bottom: 30px;
+    opacity: 0.6;
+    text-align: center;
+}
+
+.new-levels-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 22px;
+}
+
+.new-level-card {
+    overflow: hidden;
+    background: #07121f;
+    border: 1px solid rgba(95, 175, 245, 0.25);
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.55);
+}
+
+.new-level-content {
+    padding: 16px 18px;
+}
+
+.new-level-content h2 {
+    margin: 0 0 8px;
+    font-size: 21px;
+}
+
+.new-level-content p,
+.new-levels-message {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.new-levels-message {
+    padding: 40px;
+    border: 1px solid rgba(95, 175, 245, 0.2);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.authors-page {
+    width: min(1100px, 90%);
+    margin: 40px auto 80px;
+}
+
+.authors-title {
+    margin-bottom: 8px;
+    font-size: 32px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.authors-description {
+    margin-bottom: 30px;
+    opacity: 0.6;
+    text-align: center;
+}
+
+.authors-list {
+    display: grid;
+    gap: 22px;
+}
+
+.author-card {
+    padding: 20px;
+    background: #07121f;
+    border: 1px solid rgba(95, 175, 245, 0.25);
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.55);
+}
+
+.author-name {
+    margin: 0 0 16px;
+    color: #a9d8ff;
+    font-size: 24px;
+}
+
+.author-levels {
+    display: grid;
+    gap: 12px;
+}
+
+.author-level {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    overflow: hidden;
+    padding: 10px;
+    background: rgba(25, 92, 160, 0.16);
+    border: 1px solid rgba(65, 145, 220, 0.2);
+    border-radius: 6px;
+}
+
+.author-level img {
+    width: 120px;
+    height: 54px;
+    flex: 0 0 auto;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+.author-level-info h3 {
+    margin: 0 0 6px;
+    font-size: 18px;
+}
+
+.author-level-info span,
+.authors-message {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.authors-message {
+    margin: 0;
+    padding: 40px;
+    border: 1px solid rgba(95, 175, 245, 0.2);
+    border-radius: 8px;
     text-align: center;
 }
 

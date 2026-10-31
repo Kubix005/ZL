@@ -12,7 +12,7 @@
 
     <title>Zwariowana Lista - Ranking graczy ZLL</title>
 
-    <link rel="stylesheet" href="./assets/css/style.css?v=1.3.2">
+    <link rel="stylesheet" href="./assets/css/style.css?v=1.3.7">
 
 </head>
 
@@ -38,10 +38,8 @@
         <a href="compare.html" class="leaderboard-button">
             PORÓWNAJ GRACZY
         </a>
-        <a href="prediction.html" class="leaderboard-button">
-            PREDYKCJA
-        </a>
-        <a href="progress.html" class="leaderboard-button">PROGRES</a>
+        <a href="new-levels.html" class="leaderboard-button">NOWE LEVELE!</a>
+        <a href="authors.html" class="leaderboard-button">AUTOR</a>
     </nav>
 
 
@@ -68,7 +66,7 @@
         </div>
 
     </main>
-<script src="./assets/js/shared.js?v=1.3.0"></script>
+<script src="./assets/js/shared.js?v=1.3.4"></script>
 <script>
 
 
@@ -76,9 +74,11 @@
 // USTAWIENIA
 // =====================================================
 
-const PLAYERS_URL = "./players.json";
-const LEVELS_URL = "./levels.json";
+const PLAYERS_URL = LIST_PAGE_CONTEXT.playersUrl;
+const PLAYERS_FILE = PLAYERS_URL.split("/").pop();
+const LEVELS_URL = LIST_PAGE_CONTEXT.levelsUrl;
 const THUMBNAIL_URL = "https://raw.githubusercontent.com/All-Rated-Extreme-Demon-List/Thumbnails/main/levels/cards";
+const LINKS_URL = "./links.json";
 
 
 // =====================================================
@@ -97,6 +97,20 @@ function escapeHTML(text) {
 }
 
 function formatDemonCount(count) {
+    if (LIST_PAGE_CONTEXT.isChallengeList) {
+        const lastTwoDigits = count % 100;
+        const lastDigit = count % 10;
+        const unit = count === 1
+            ? "wyzwanie"
+            : lastTwoDigits >= 12 && lastTwoDigits <= 14
+                ? "wyzwań"
+                : lastDigit >= 2 && lastDigit <= 4
+                    ? "wyzwania"
+                    : "wyzwań";
+
+        return `${count} ${unit}`;
+    }
+
     const lastTwoDigits = count % 100;
     const lastDigit = count % 10;
 
@@ -114,6 +128,24 @@ function formatDemonCount(count) {
     }
 
     return `${count} demonów`;
+}
+
+function isNewLevel(level, firstIncludedDay, today) {
+    const addedAt = level.AddedAt ?? level.addedAt;
+
+    if (typeof addedAt !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(addedAt)) {
+        return false;
+    }
+
+    const [year, month, day] = addedAt.split("-").map(Number);
+    const timestamp = Date.UTC(year, month - 1, day);
+    const date = new Date(timestamp);
+
+    return date.getUTCFullYear() === year &&
+        date.getUTCMonth() === month - 1 &&
+        date.getUTCDate() === day &&
+        timestamp >= firstIncludedDay &&
+        timestamp <= today;
 }
 
 
@@ -137,7 +169,8 @@ async function loadLeaderboard() {
 
         const [
             playersResponse,
-            levelsResponse
+            levelsResponse,
+            linksResponse
         ] = await Promise.all([
 
             fetch(PLAYERS_URL, {
@@ -146,14 +179,20 @@ async function loadLeaderboard() {
 
             fetch(LEVELS_URL, {
                 cache: "no-cache"
-            })
+            }),
+
+            LIST_PAGE_CONTEXT.isChallengeList
+                ? fetch(LINKS_URL, {
+                    cache: "no-cache"
+                })
+                : Promise.resolve(null)
 
         ]);
 
 
         if (!playersResponse.ok) {
             throw new Error(
-                "Nie można wczytać players.json"
+                `Nie można wczytać ${PLAYERS_FILE}`
             );
         }
 
@@ -161,6 +200,12 @@ async function loadLeaderboard() {
         if (!levelsResponse.ok) {
             throw new Error(
                 "Nie można wczytać levels.json"
+            );
+        }
+
+        if (linksResponse && !linksResponse.ok) {
+            throw new Error(
+                `Nie można wczytać ${LINKS_URL}`
             );
         }
 
@@ -172,10 +217,14 @@ async function loadLeaderboard() {
         const levels =
             await levelsResponse.json();
 
+        const links = linksResponse
+            ? await linksResponse.json()
+            : [];
+
 
         if (!Array.isArray(players)) {
             throw new Error(
-                "players.json musi zawierać tablicę"
+                `${PLAYERS_FILE} musi zawierać tablicę`
             );
         }
 
@@ -186,6 +235,48 @@ async function loadLeaderboard() {
             );
         }
 
+        if (!Array.isArray(links)) {
+            throw new Error(
+                "links.json musi zawierać tablicę"
+            );
+        }
+
+        const videoLinks = new Map();
+        links.forEach((link, index) => {
+            const playerName = String(link?.player ?? "").trim();
+            const levelIds = Array.isArray(link?.levelId)
+                ? link.levelId.map(levelId => String(levelId ?? "").trim()).filter(Boolean)
+                : [String(link?.levelId ?? "").trim()].filter(Boolean);
+            let videoUrl;
+
+            try {
+                videoUrl = new URL(String(link?.videoUrl ?? "").trim());
+            } catch {
+                console.warn(`Nieprawidłowy videoUrl w links.json (wpis ${index + 1}).`);
+                return;
+            }
+
+            if (
+                !playerName ||
+                !levelIds.length ||
+                !["http:", "https:"].includes(videoUrl.protocol)
+            ) {
+                console.warn(`Nieprawidłowy wpis links.json (wpis ${index + 1}).`);
+                return;
+            }
+
+            levelIds.forEach(levelId => {
+                const key = `${playerName.toLowerCase()}::${levelId}`;
+
+                if (videoLinks.has(key)) {
+                    console.warn(`Powielony link do wyzwania w links.json (wpis ${index + 1}).`);
+                    return;
+                }
+
+                videoLinks.set(key, videoUrl.toString());
+            });
+        });
+
 
         const recentPlayer = players.find(player => {
             const tag = Array.isArray(player.tag) ? player.tag : [player.tag];
@@ -193,6 +284,19 @@ async function loadLeaderboard() {
         });
         const activeLevels = levels
             .filter(level => !isLegacyLevel(level));
+        const now = new Date();
+        const today = Date.UTC(
+            now.getUTCFullYear(),
+            now.getUTCMonth(),
+            now.getUTCDate()
+        );
+        const firstIncludedDay = today - 6 * 24 * 60 * 60 * 1000;
+        const newLevelIds = new Set(
+            activeLevels
+                .slice(0, 150)
+                .filter(level => isNewLevel(level, firstIncludedDay, today))
+                .map(level => String(level.id))
+        );
         const legacyNames = new Set(
             levels
                 .filter(isLegacyLevel)
@@ -239,12 +343,42 @@ async function loadLeaderboard() {
                 if (index < 150) {
                     demonMap[name] =
                         rank;
+                    if (level.id !== undefined && level.id !== null) {
+                        const id = String(level.id).trim();
+                        if (!(id in demonMap)) {
+                            demonMap[id] = rank;
+                        }
+                    }
+                    if (level.id !== undefined && level.id !== null) {
+                        const id = String(level.id).trim();
+                        if (!(id in demonMap)) {
+                            demonMap[id] = rank;
+                        }
+                    }
                 }
 
                 levelMap[name] = {
                     level,
                     rank
                 };
+                if (level.id !== undefined && level.id !== null) {
+                    const id = String(level.id).trim();
+                    if (!(id in levelMap)) {
+                        levelMap[id] = {
+                            level,
+                            rank
+                        };
+                    }
+                }
+                if (level.id !== undefined && level.id !== null) {
+                    const id = String(level.id).trim();
+                    if (!(id in levelMap)) {
+                        levelMap[id] = {
+                            level,
+                            rank
+                        };
+                    }
+                }
 
             });
 
@@ -279,14 +413,10 @@ async function loadLeaderboard() {
                 // DEMONY GRACZA
                 // -----------------------------------------
 
-                const playerDemons =
-                    Array.isArray(player.Demons)
-                        ? player.Demons
-                            .filter(demonName => demonName)
-                            .filter(demonName =>
-                                !legacyNames.has(String(demonName).trim().toLowerCase())
-                            )
-                        : [];
+                const playerDemons = getPlayerCompletions(player)
+                    .filter(demonName =>
+                        !legacyNames.has(String(demonName).trim().toLowerCase())
+                    );
 
 
                 playerDemons.forEach(
@@ -383,12 +513,12 @@ async function loadLeaderboard() {
                 );
 
 
+                const playerName = String(player.Player || "").trim();
+
                 return {
 
                     name:
-                        String(
-                            player.Player || ""
-                        ),
+                        playerName,
 
                     points:
                         totalPoints,
@@ -414,12 +544,19 @@ async function loadLeaderboard() {
                         playerDemons
                             .map(demonName => {
                                 const name = String(demonName).trim();
-                                const demon = levelMap[name.toLowerCase()];
+                                const demon = levelMap[name.toLowerCase()] ||
+                                    levelMap[name];
 
                                 return {
-                                    name,
+                                    name: demon?.level.name || name,
                                     rank: demon?.rank,
-                                    id: demon?.level.id
+                                    id: demon?.level.id,
+                                    author: demon?.level.Autor,
+                                    isNew: demon?.level.id != null &&
+                                        newLevelIds.has(String(demon.level.id)),
+                                    videoUrl: LIST_PAGE_CONTEXT.isChallengeList && demon?.level.id != null
+                                        ? videoLinks.get(`${playerName.toLowerCase()}::${String(demon.level.id).trim()}`)
+                                        : null
                                 };
                             })
 
@@ -552,7 +689,7 @@ async function loadLeaderboard() {
 
 
                     <span class="leaderboard-points">
-                        ${player.points} <small>RK</small>
+                        ${player.points} <small>ZLP</small>
                     </span>
 
                 `;
@@ -569,24 +706,39 @@ async function loadLeaderboard() {
                 details.hidden =
                     true;
 
+                const demonCards = player.demons.map(demon => `
+                    ${demon.videoUrl
+                        ? `<a class="leaderboard-demon leaderboard-demon-link" href="${escapeHTML(demon.videoUrl)}" target="_blank" rel="noopener noreferrer" title="Otwórz wideo ukończenia: ${escapeHTML(demon.name)}">`
+                        : `<div class="leaderboard-demon">`}
+                        ${demon.id
+                            ? `<img src="${THUMBNAIL_URL}/${encodeURIComponent(String(demon.id))}.webp" alt="" loading="lazy">`
+                            : ""}
+                        <span class="leaderboard-demon-info">
+                            <span class="leaderboard-demon-name">${escapeHTML(demon.name)}</span>
+                            <span class="leaderboard-demon-meta">
+                                ${demon.id ? `ID: ${escapeHTML(demon.id)}` : ""}
+                                ${demon.author
+                                    ? ` · Autor: ${escapeHTML(Array.isArray(demon.author) ? demon.author.join(", ") : demon.author)}`
+                                    : ""}
+                            </span>
+                        </span>
+                        <span class="leaderboard-demon-rank">
+                            ${demon.rank ? `#${demon.rank}` : "Poza rankingiem"}
+                            ${demon.isNew ? '<span class="leaderboard-demon-new">NEW</span>' : ""}
+                        </span>
+                    ${demon.videoUrl ? "</a>" : "</div>"}
+                `).join("");
+
                 details.innerHTML = player.demons.length
                     ? `
                         <div class="leaderboard-demons-title">
-                            Demony gracza ${escapeHTML(player.name)}
+                            Ukończone ${LIST_PAGE_CONTEXT.isChallengeList ? "wyzwania" : "demony"} gracza ${escapeHTML(player.name)}
                         </div>
                         <div class="leaderboard-demons-list">
-                            ${player.demons.map(demon => `
-                                <div class="leaderboard-demon">
-                                    ${demon.id
-                                        ? `<img src="${THUMBNAIL_URL}/${encodeURIComponent(String(demon.id))}.webp" alt="" loading="lazy">`
-                                        : ""}
-                                    <span class="leaderboard-demon-name">${escapeHTML(demon.name)}</span>
-                                    <span class="leaderboard-demon-rank">${demon.rank ? `#${demon.rank}` : "Poza rankingiem"}</span>
-                                </div>
-                            `).join("")}
+                            ${demonCards}
                         </div>
                     `
-                    : '<div class="leaderboard-demons-empty">Brak zapisanych demonów.</div>';
+                    : `<div class="leaderboard-demons-empty">Brak zapisanych ${LIST_PAGE_CONTEXT.isChallengeList ? "wyzwań" : "demonów"}.</div>`;
 
                 row.addEventListener("click", () => {
                     const isExpanded =
@@ -647,6 +799,12 @@ async function loadLeaderboard() {
 // =====================================================
 // START
 // =====================================================
+
+if (LIST_PAGE_CONTEXT.isChallengeList) {
+    document.title = "Zwariowana Lista - Ranking graczy ZCL";
+    document.querySelector(".leaderboard-subtitle").textContent =
+        "Ranking na podstawie ukończonych wyzwań";
+}
 
 document.addEventListener(
     "DOMContentLoaded",

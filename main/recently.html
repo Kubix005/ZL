@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zwariowana Lista - Ostatnio wbite!</title>
-    <link rel="stylesheet" href="./assets/css/style.css?v=1.3.2">
+    <link rel="stylesheet" href="./assets/css/style.css?v=1.3.4">
 </head>
 <body>
     <header id="hejder">
@@ -15,8 +15,8 @@
         <a href="leaderboard.html" class="leaderboard-button">LEADERBOARD</a>
         <a href="winners.html" class="leaderboard-button">ZWYCIĘZCY LEVELA</a>
         <a href="compare.html" class="leaderboard-button">PORÓWNAJ GRACZY</a>
-        <a href="prediction.html" class="leaderboard-button">PREDYKCJA</a>
-        <a href="progress.html" class="leaderboard-button">PROGRES</a>
+        <a href="new-levels.html" class="leaderboard-button">NOWE LEVELE!</a>
+        <a href="authors.html" class="leaderboard-button">AUTOR</a>
     </nav>
 
     <main class="recently-page">
@@ -28,10 +28,10 @@
         </div>
     </main>
 
-    <script src="./assets/js/shared.js?v=1.3.0"></script>
+    <script src="./assets/js/shared.js?v=1.3.4"></script>
     <script>
-        const PLAYERS_URL = "./players.json";
-        const LEVELS_URL = "./levels.json";
+        const PLAYERS_URL = LIST_PAGE_CONTEXT.playersUrl;
+        const LEVELS_URL = LIST_PAGE_CONTEXT.levelsUrl;
         const THUMBNAIL_URL = "https://raw.githubusercontent.com/All-Rated-Extreme-Demon-List/Thumbnails/main/levels/cards";
 
         function escapeHTML(text) {
@@ -76,7 +76,9 @@
                 const entries = recentPlayers
                     .filter(player =>
                         player.recent &&
-                        !legacyNames.has(String(player.recent).trim().toLowerCase())
+                        !legacyNames.has(String(player.recent).trim().toLowerCase()) &&
+                        (!LIST_PAGE_CONTEXT.isChallengeList ||
+                            levelsByName.has(String(player.recent).trim().toLowerCase()))
                     )
                     .map(player => {
                         const demonName = String(player.recent).trim();
@@ -92,6 +94,13 @@
                         };
                     });
 
+                document.querySelector(".recently-title").textContent =
+                    LIST_PAGE_CONTEXT.isChallengeList
+                        ? "Najnowszy challenge wbity!"
+                        : "Najnowszy Demon Wbity!";
+                document.title = LIST_PAGE_CONTEXT.isChallengeList
+                    ? "Zwariowana Lista - Ostatnio wbity challenge"
+                    : document.title;
                 const subtitle = document.getElementById("recently-subtitle");
 
                 if (subtitle && entries.length) {
@@ -110,7 +119,7 @@
                     const imageMarkup = image
                         ? `<div class="recently-image">
                                 <img src="${image}" alt="${escapeHTML(entry.demonName)}" loading="lazy">
-                            <div class="image-points">${entry.rank === null ? "RK unavailable" : `TOP ${entry.rank} - ${entry.points} RK`}</div>
+                            <div class="image-points">${entry.rank === null ? "ZLP unavailable" : `TOP ${entry.rank} - ${entry.points} ZLP`}</div>
                            </div>`
                         : "";
 

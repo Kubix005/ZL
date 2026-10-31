@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zwariowana Lista - Nowe Levele!</title>
+    <link rel="stylesheet" href="./assets/css/style.css?v=1.3.4">
+</head>
+<body>
+    <header id="hejder">
+        <a href="index.html" class="header-home">Zwariowana Lista</a>
+    </header>
+
+    <nav class="page-links" aria-label="Powiązane strony">
+        <a href="leaderboard.html" class="leaderboard-button">LEADERBOARD</a>
+        <a href="recently.html" class="leaderboard-button recently-button">OSTATNIO WBITE</a>
+        <a href="winners.html" class="leaderboard-button">ZWYCIĘZCY LEVELA</a>
+        <a href="compare.html" class="leaderboard-button">PORÓWNAJ GRACZY</a>
+        <a href="authors.html" class="leaderboard-button">AUTOR</a>
+    </nav>
+
+    <main class="new-levels-page">
+        <h1 class="new-levels-title">NOWE LEVELE!</h1>
+        <p id="new-levels-description" class="new-levels-description">
+            Levele dodane do listy w ciągu ostatnich 7 dni.
+        </p>
+        <section id="new-levels-list" class="new-levels-list" aria-live="polite">
+            <p class="new-levels-message">Ładowanie leveli...</p>
+        </section>
+    </main>
+
+    <script src="./assets/js/shared.js?v=1.3.2"></script>
+    <script>
+        const LEVELS_URL = LIST_PAGE_CONTEXT.levelsUrl;
+
+        function escapeHTML(value) {
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function parseAddedDate(value) {
+            if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+                return null;
+            }
+
+            const [year, month, day] = value.split("-").map(Number);
+            const timestamp = Date.UTC(year, month - 1, day);
+            const date = new Date(timestamp);
+
+            if (
+                date.getUTCFullYear() !== year ||
+                date.getUTCMonth() !== month - 1 ||
+                date.getUTCDate() !== day
+            ) {
+                return null;
+            }
+
+            return { timestamp, date };
+        }
+
+        function formatAddedDate(date) {
+            return new Intl.DateTimeFormat("pl-PL", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                timeZone: "UTC"
+            }).format(date);
+        }
+
+        async function loadNewLevels() {
+            const container = document.getElementById("new-levels-list");
+
+            try {
+                const response = await fetch(LEVELS_URL, { cache: "no-cache" });
+
+                if (!response.ok) {
+                    throw new Error(`Could not load levels data: HTTP ${response.status}`);
+                }
+
+                const allLevels = await response.json();
+
+                if (!Array.isArray(allLevels)) {
+                    throw new Error("levels.json must contain an array.");
+                }
+
+                const now = new Date();
+                const today = Date.UTC(
+                    now.getUTCFullYear(),
+                    now.getUTCMonth(),
+                    now.getUTCDate()
+                );
+                const firstIncludedDay = today - 6 * 24 * 60 * 60 * 1000;
+                const activeLevels = allLevels
+                    .filter(level => !isLegacyLevel(level))
+                    .slice(0, 150);
+                const recentLevels = activeLevels
+                    .map((level, index) => {
+                        const addedAt = level.AddedAt ?? level.addedAt;
+
+                        return {
+                            level,
+                            rank: index + 1,
+                            addedAt,
+                            added: parseAddedDate(addedAt)
+                        };
+                    })
+                    .filter(entry =>
+                        entry.added &&
+                        entry.added.timestamp >= firstIncludedDay &&
+                        entry.added.timestamp <= today
+                    )
+                    .sort((a, b) =>
+                        b.added.timestamp - a.added.timestamp || a.rank - b.rank
+                    );
+
+                document.getElementById("new-levels-description").textContent =
+                    LIST_PAGE_CONTEXT.isChallengeList
+                        ? "Wyzwania dodane do listy w ciągu ostatnich 7 dni."
+                        : "Levele dodane do listy w ciągu ostatnich 7 dni.";
+                document.title = LIST_PAGE_CONTEXT.isChallengeList
+                    ? "Zwariowana Lista - Nowe Challenge!"
+                    : "Zwariowana Lista - Nowe Levele!";
+
+                if (!recentLevels.length) {
+                    container.innerHTML =
+                        '<p class="new-levels-message">Brak nowych leveli z ostatnich 7 dni.</p>';
+                    return;
+                }
+
+                container.innerHTML = recentLevels.map(({ level, rank, addedAt, added }) => `
+                    <article class="new-level-card">
+                        <div class="new-level-content">
+                            <h2>${escapeHTML(level.name)}</h2>
+                            <p>ID: ${escapeHTML(level.id)}</p>
+                            <p>TOP ${rank} - ${getPoints(rank)} ZLP</p>
+                            <p>Dodano: <time datetime="${escapeHTML(addedAt)}">${formatAddedDate(added.date)}</time></p>
+                        </div>
+                    </article>
+                `).join("");
+            } catch (error) {
+                console.error("Could not load new levels:", error);
+                container.innerHTML =
+                    '<p class="new-levels-message">Nie udało się załadować nowych leveli.</p>';
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", loadNewLevels);
+    </script>
+</body>
+</html>
