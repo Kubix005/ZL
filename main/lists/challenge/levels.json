@@ -117,7 +117,7 @@
     {
         "name":"Sevvend Spam Trials",
         "id":"143789593",
-        "tag":["Spam"],
+        "tag":["High CPS","Spam"],
         "AddedAt":"2026-11-02"
     },
     {
@@ -129,7 +129,7 @@
         "name":"Bodek Spam Trials",
         "id":"151209135",
         "AddedAt":"2026-10-25",
-        "tag":["High CPS"]
+        "tag":["High CPS","Spam"]
     },
     {
         "name":"50 mim challenge",
