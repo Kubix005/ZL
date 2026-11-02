@@ -7,6 +7,7 @@ Strona główna `index.html` prowadzi do dwóch niezależnych list:
 
 - ZLL: `lists/zll/index.html`, z levelami z `lists/zll/levels.json`.
 - Zwariowany Challenge List: `lists/challenge/index.html`, z wyzwaniami z `lists/challenge/levels.json`.
+- `changelog.html` opisuje aktualizacje i ich wpływ na listy oraz rankingi. Historia wydań jest uzupełniana ręcznie, a changelog leveli grupuje aktywne levele z polem `AddedAt` lub `addedAt` w osobne wpisy według daty dodania, pokazując ich aktualną pozycję i punkty.
 
 Obie strony list korzystają ze wspólnego układu, arkuszy w `assets/css/` i skryptu `assets/js/list-page.js`; ustawienia źródeł leveli i ukończeń są podane jako atrybuty `data-*` na `<body>`. W obu plikach JSON kolejność elementów wyznacza miejsce na liście. Challenge List może mieć maksymalnie 150 aktywnych wyzwań. Jej punkty są liczone tą samą krzywą co ZLL, ale osobno według rankingu Challenge; wyniki i ukończenia Challenge nie zmieniają punktów ZLL.
 
@@ -50,7 +51,7 @@ Linki do filmów z ukończeń zapisuj osobno dla każdej listy: ZCL w `links.jso
 
 W rankingu odpowiedniej listy kafelek ukończonego poziomu staje się linkiem do filmu, jeśli istnieje pasujący wpis dla gracza i ID poziomu. Jeden film może mieć kilka ID w `levelId`; każdy z tych kafelków otworzy to samo wideo. Link otwiera się w nowej karcie. Jeśli dla poziomu jest osobny film, dodaj dla niego osobny obiekt. Dla zachowania zgodności nadal akceptowane jest pojedyncze ID jako tekst; przy braku linków plik może zawierać pustą tablicę `[]`.
 
-Zakładka „Nowe Levele!” pokazuje aktywne levele dodane w ciągu ostatnich 7 dni. Przy dodawaniu wpisu do odpowiedniego `levels.json` ustaw pole `AddedAt` na datę w formacie `YYYY-MM-DD`; starsze wpisy bez tej daty nie pojawią się w zakładce. Pole `addedAt` jest także obsługiwane dla zgodności. W szczegółach gracza w leaderboardzie ukończone levele z tej zakładki mają oznaczenie `NEW` obok miejsca na liście.
+Zakładka „Nowe Levele!” pokazuje aktywne levele dodane w ciągu ostatnich 7 dni. Przy dodawaniu wpisu do odpowiedniego `levels.json` ustaw pole `AddedAt` na datę w formacie `YYYY-MM-DD`; starsze wpisy bez tej daty nie pojawią się w zakładce. Pole `addedAt` jest także obsługiwane dla zgodności. Data jest też używana w changelogu leveli. W szczegółach gracza w leaderboardzie ukończone levele z tej zakładki mają oznaczenie `NEW` obok miejsca na liście.
 
 Zakładka „Autorzy” grupuje aktywne levele według pola `Autor` w odpowiednim `levels.json`. Wpisz nazwę autora jako tekst, np. `"Autor": "Sevvend"`. Jeśli przy levelu nie ma autora, wpis nie pojawi się w tej zakładce.
 

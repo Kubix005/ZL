@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Najnowsze zmiany na Zwariowanej Liście i ich wpływ na listy oraz rankingi.">
+    <title>Zwariowana Lista - Changelog</title>
+    <link rel="stylesheet" href="./assets/css/style.css?v=1.3.4">
+    <link rel="stylesheet" href="./assets/css/list-hub.css?v=1.3.5">
+</head>
+<body>
+    <header id="hejder">
+        <a href="./index.html" class="header-home">Zwariowana Lista</a>
+    </header>
+
+    <main class="changelog-page">
+        <a class="leaderboard-button changelog-home" href="./index.html">WRÓĆ NA STRONĘ GŁÓWNĄ</a>
+        <h1>Changelog</h1>
+        <p class="changelog-intro">
+            Co zostało dodane lub zmienione i jak wpływa to na listy oraz rankingi.
+        </p>
+
+        <section class="level-changelog" aria-labelledby="level-changelog-title">
+            <h2 id="level-changelog-title">Changelog leveli</h2>
+            <p class="level-changelog-intro">
+                Każda data dodania ma osobny wpis. Znajdziesz w nim levele dodane tego dnia
+                na ZLL i ZCL oraz ich aktualne miejsce i punkty za ukończenie.
+            </p>
+            <div id="level-changelog-entries" class="level-changelog-entries" aria-live="polite">
+                <p class="level-changelog-message">Ładowanie zmian...</p>
+            </div>
+            <p class="level-changelog-note">
+                Pozycja i punkty pokazują aktualny stan listy, a nie historyczne miejsce levela w dniu dodania.
+                Zmiany w kolejności leveli mogą zmienić punkty graczy.
+            </p>
+        </section>
+
+        <article class="changelog-entry">
+            <header class="changelog-entry-header">
+                <span class="changelog-entry-version">Wersja 1.0.2</span>
+                <time datetime="2026-10-31">31.10.2026</time>
+            </header>
+            <h2>Tagi, filmy i aktualizacja ZLL</h2>
+            <ul>
+                <li>Dodano tagi do wyzwań i możliwość wyszukiwania po tagach.</li>
+                <li>Linki do filmów z ukończeń są teraz obsługiwane osobno dla ZLL i Challenge List.</li>
+                <li>Zaktualizowano skład ZLL, między innymi o Bogatynia Circles, Very Amasing Level 2 i Emil Stairs.</li>
+            </ul>
+            <p class="changelog-impact">
+                <strong>Wpływ na ranking:</strong> punktacja za ukończenie nadal zależy od miejsca levela na liście.
+                Zmiana składu lub pozycji leveli może więc zmienić punkty gracza i przesunąć go w rankingu,
+                także przez granicę TOP 50. Sam wzór punktacji się nie zmienił.
+            </p>
+        </article>
+
+        <article class="changelog-entry">
+            <header class="changelog-entry-header">
+                <span class="changelog-entry-version">Wersja 1.0.1</span>
+                <time datetime="2026-10-31">31.10.2026</time>
+            </header>
+            <h2>Dokładniejsze porównanie ukończeń</h2>
+            <ul>
+                <li>Porównywanie graczy rozpoznaje ukończone levele po nazwie lub ID i nie liczy tego samego levela dwa razy.</li>
+                <li>Ukończone levele w szczegółach gracza są wyświetlane według ich miejsca na liście.</li>
+            </ul>
+            <p class="changelog-impact">
+                <strong>Wpływ na ranking:</strong> zmienił się sposób rozpoznawania i prezentacji ukończeń,
+                ale nie zmienił się wzór przyznawania punktów.
+            </p>
+        </article>
+
+        <article class="changelog-entry">
+            <header class="changelog-entry-header">
+                <span class="changelog-entry-version">Wersja 1.0.0</span>
+                <time datetime="2026-10-31">31.10.2026</time>
+            </header>
+            <h2>Osobna Challenge List</h2>
+            <ul>
+                <li>Dodano Challenge List z własną listą leveli, ukończeniami i rankingiem graczy.</li>
+                <li>Dodano strony „Nowe levele!” i „Autor”.</li>
+            </ul>
+            <p class="changelog-impact">
+                <strong>Wpływ na ranking:</strong> ukończenia i punkty Challenge List są niezależne od ZLL,
+                więc wyniki jednej listy nie zmieniają rankingu drugiej.
+            </p>
+        </article>
+    </main>
+    <script src="./assets/js/shared.js?v=1.3.4"></script>
+    <script>
+        const LEVEL_CHANGE_LISTS = [
+            {
+                url: "./lists/zll/levels.json",
+                name: "ZLL"
+            },
+            {
+                url: "./lists/challenge/levels.json",
+                name: "ZCL"
+            }
+        ];
+
+        function escapeHTML(value) {
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function parseAddedDate(value) {
+            if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+                return null;
+            }
+
+            const [year, month, day] = value.split("-").map(Number);
+            const timestamp = Date.UTC(year, month - 1, day);
+            const date = new Date(timestamp);
+
+            if (
+                date.getUTCFullYear() !== year ||
+                date.getUTCMonth() !== month - 1 ||
+                date.getUTCDate() !== day
+            ) {
+                return null;
+            }
+
+            return date;
+        }
+
+        async function loadLevelChanges() {
+            const container = document.getElementById("level-changelog-entries");
+
+            try {
+                const changesByDate = new Map();
+
+                await Promise.all(LEVEL_CHANGE_LISTS.map(async ({ url, name }) => {
+                    const response = await fetch(url, { cache: "no-cache" });
+
+                    if (!response.ok) {
+                        throw new Error(`Nie można wczytać ${url}: HTTP ${response.status}`);
+                    }
+
+                    const levels = await response.json();
+
+                    if (!Array.isArray(levels)) {
+                        throw new Error(`${url} musi zawierać tablicę leveli.`);
+                    }
+
+                    levels
+                        .filter(level => level && !isLegacyLevel(level))
+                        .slice(0, 150)
+                        .forEach((level, index) => {
+                            const date = parseAddedDate(level.AddedAt ?? level.addedAt);
+
+                            if (!date) {
+                                return;
+                            }
+
+                            const dateKey = date.toISOString().slice(0, 10);
+                            const changes = changesByDate.get(dateKey) || [];
+                            changes.push({
+                                list: name,
+                                level,
+                                rank: index + 1
+                            });
+                            changesByDate.set(dateKey, changes);
+                        });
+                }));
+
+                if (!changesByDate.size) {
+                    container.innerHTML = '<p class="level-changelog-message">Brak wpisów z datą dodania.</p>';
+                    return;
+                }
+
+                container.innerHTML = [...changesByDate.entries()]
+                    .sort(([dateA], [dateB]) => dateB.localeCompare(dateA))
+                    .map(([date, changes], index) => `
+                    <article class="level-changelog-entry" aria-labelledby="level-changelog-date-${index}">
+                        <header class="level-changelog-entry-header">
+                            <h3 id="level-changelog-date-${index}">
+                                <time datetime="${date}">${new Intl.DateTimeFormat("pl-PL", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            timeZone: "UTC"
+                                }).format(new Date(`${date}T00:00:00Z`))}</time>
+                            </h3>
+                        </header>
+                        <ul class="level-changelog-items">
+                            ${changes
+                                .sort((a, b) => a.list.localeCompare(b.list) || a.rank - b.rank)
+                                .map(({ list, level, rank }) => `
+                                    <li class="level-changelog-item">
+                                        <span class="level-changelog-list-name">${list}</span>
+                                        <strong>${escapeHTML(level.name || "Level bez nazwy")}</strong>
+                                        <span class="level-changelog-rank">TOP ${rank} · ${getPoints(rank)} ZLP</span>
+                                    </li>
+                                `).join("")}
+                        </ul>
+                    </article>
+                `).join("");
+            } catch (error) {
+                console.error("Nie udało się wczytać changeloga leveli.", error);
+                container.innerHTML = '<p class="level-changelog-message">Nie udało się wczytać zmian. Spróbuj ponownie później.</p>';
+            }
+        }
+
+        loadLevelChanges();
+    </script>
+</body>
+</html>

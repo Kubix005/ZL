@@ -2,7 +2,8 @@
     {
         "name":"pOWOdzonka",
         "id":"151516478",
-        "AddedAt":"2026-10-30"
+        "AddedAt":"2026-10-30",
+        "tag":["Wave"]
     },
     {
         "name":"Larpiety",
@@ -29,7 +30,8 @@
     {
         "name":"Speedrun top 5",
         "id":"151350223",
-        "AddedAt":"2026-10-30"
+        "AddedAt":"2026-10-30",
+        "tag":["Wave"]
     },
     {
         "name":"santa",
@@ -39,7 +41,8 @@
     {
         "name":"Shippppppppppp",
         "id":"151530287",
-        "AddedAt":"2026-10-30"
+        "AddedAt":"2026-10-30",
+        "tag":["Ship"]
     },
     {
         "name":"Lacewing",
@@ -54,135 +57,172 @@
     },
     {
         "name":"Gooslaw Challenge",
-        "id":"145484484"
+        "id":"145484484",
+        "tag":["Wave"]
     },
     {
         "name":"Mangetsuu",
-        "id":"148004599"
+        "id":"148004599",
+        "tag":["Wave"]
     },
     {
         "name":"Shower",
-        "id":"143033418"
+        "id":"143033418",
+        "tag":["Overall","Learny"]
     },
     {
         "name":"Nooboek challange buf",
         "id":"134832928",
-        "AddedAt":"2026-10-30"
+        "AddedAt":"2026-10-30",
+        "tag":["Wave"]
     },
     {
         "name":"Kicek jest w ciazy",
         "id":"127099199"
-,        "AddedAt":"2026-10-26"
+,        "AddedAt":"2026-10-26",
+        "tag":["Wave","Ship"]
     },
     {
         "name":"chmurka",
         "id":"151254233",
-        "AddedAt":"2026-10-28"
+        "AddedAt":"2026-10-28",
+        "tag":["Ship"]
     },
     {
         "name":"sevvend club",
         "id":"151016391",
-        "AddedAt":"2026-10-25"
+        "AddedAt":"2026-10-25",
+        "tag":["Wave"]
     },
     {
         "name":"In the Dark",
-        "id":"126372991"
+        "id":"126372991",
+        "tag":["Wave"]
     },
     {
         "name":"i fear these jumps",
-        "id":"148683261"
+        "id":"148683261",
+        "tag":["Cube"]
     },
     {
         "name":"Armia Szczupakuw",
-        "id":"144125641"
+        "id":"144125641",
+        "tag":["Cube"]
     },
      {
         "name":"CORSO",
-        "id":"136957633"
+        "id":"136957633",
+        "tag":["Overall"]
+    },
+    {
+        "name":"Sevvend Spam Trials",
+        "id":"143789593",
+        "tag":["Spam"],
+        "AddedAt":"2026-11-2"
     },
     {
         "name":"peesquared",
-        "id":"141619287"
+        "id":"141619287",
+        "tag":["Ship"]
     },
     {
         "name":"Bodek Spam Trials",
         "id":"151209135",
-        "AddedAt":"2026-10-25"
+        "AddedAt":"2026-10-25",
+        "tag":["High CPS"]
     },
     {
-"name":"50 mim challenge",
-"id":"140225588",
-"AddedAt":"2026-10-30"
+        "name":"50 mim challenge",
+        "id":"140225588",
+        "AddedAt":"2026-10-30",
+        "tag":["Overall"]
     },
     {
         "name":"SpaceShip",
-        "id":"148585941"
+        "id":"148585941",
+        "tag":["Ufo"]
     },
     {
         "name":"Fun Saws",
         "id":"144620974",
-        "AddedAt":"2026-10-26"
+        "AddedAt":"2026-10-26",
+        "tag":["Overall"]
     },
     {
         "name":"Hotline",
-        "id":"142173206"
+        "id":"142173206",
+        "tag":["Wave"]
     },
     {
         "name":"Sunken",
-        "id":"142085743"
+        "id":"142085743",
+        "tag":["Wave"]
     },
     {
         "name":"Wave Challenge 9",
-        "id":"108872274"
+        "id":"108872274",
+        "tag":["Wave"]
     },
     {
         "name":"ArchAngel",
-        "id":"138386308"
+        "id":"138386308",
+        "tag":["Wave"]
     },
     {
         "name":"ill Take Care Of You",
-        "id":"143917219"
+        "id":"143917219",
+        "tag":["Wave"]
     },
     {
         "name":"Checkers VS Chess",
-        "id":"132518720"
+        "id":"132518720",
+        "tag":["Wave"]
     },
     {
         "name":"Zepsuta Kanapka",
-        "id":"146186253"
+        "id":"146186253",
+        "tag":["Wave"]
     },
     {
         "name":"Koszatniczka Wave",
-        "id":"131174727"
+        "id":"131174727",
+        "tag":["Wave"]
     },
     {
         "name":"Pozdrawiamy Wojana",
-        "id":"148621767"
+        "id":"148621767",
+        "tag":["Overall"]
     },
     {
         "name":"The Golden Dandelion",
-        "id":"132712503"
+        "id":"132712503",
+        "tag":["Wave"]
     },
     {
         "name":"Fallen Wave",
         "id":"127099803",
-        "AddedAt":"2026-10-27"
+        "AddedAt":"2026-10-27",
+        "tag":["Wave","Ship"]
     },
     {
         "name":"Mushroom Chal II",
-        "id":"132500538"
+        "id":"132500538",
+        "tag":["Overall"]
     },
     {
         "name":"Ufo Kicek",
         "id":"136856535",
-        "AddedAt":"2026-10-31"
+        "AddedAt":"2026-10-31",
+        "tag":["Ufo"]
     },
     {
         "name":"Reviere",
-        "id":"148960837"
+        "id":"148960837",
+        "tag":["Wave"]
     },
     {
         "name":"Tu Ppa",
-        "id":"147376675"
+        "id":"147376675",
+        "tag":["Wave"]
     }
 ]
