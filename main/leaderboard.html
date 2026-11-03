@@ -12,7 +12,7 @@
 
     <title>Zwariowana Lista - Ranking graczy ZLL</title>
 
-    <link rel="stylesheet" href="./assets/css/style.css?v=1.4.0">
+    <link rel="stylesheet" href="./assets/css/style.css?v=1.4.3">
 
 </head>
 
@@ -134,6 +134,29 @@ function formatDemonCount(count) {
     }
 
     return `${count} demonów`;
+}
+
+function getLevelTags(level) {
+    const tagValue = level?.Tag ?? level?.tag;
+    const tags = Array.isArray(tagValue)
+        ? tagValue
+        : tagValue == null
+            ? []
+            : [tagValue];
+    const seenTags = new Set();
+
+    return tags
+        .map(tag => String(tag ?? "").trim())
+        .filter(tag => {
+            const key = tag.toLowerCase();
+
+            if (!key || seenTags.has(key)) {
+                return false;
+            }
+
+            seenTags.add(key);
+            return true;
+        });
 }
 
 function isNewLevel(level, firstIncludedDay, today) {
@@ -545,6 +568,46 @@ async function loadLeaderboard() {
 
                 const playerName = String(player.Player || "").trim();
 
+                const demons = playerDemons
+                    .map(demonName => {
+                        const name = String(demonName).trim();
+                        const demon = levelMap[name.toLowerCase()] ||
+                            levelMap[name];
+
+                        return {
+                            name: demon?.level.name || name,
+                            rank: demon?.rank,
+                            id: demon?.level.id,
+                            author: demon?.level.Autor,
+                            tags: getLevelTags(demon?.level),
+                            isNew: demon?.level.id != null &&
+                                newLevelIds.has(String(demon.level.id)),
+                            videoUrl: demon?.level.id != null
+                                ? videoLinks.get(`${playerName.toLowerCase()}::${String(demon.level.id).trim().toLowerCase()}`)
+                                : null
+                        };
+                    });
+                const tagCounts = new Map();
+
+                demons.forEach(demon => {
+                    demon.tags.forEach(tag => {
+                        const key = tag.toLowerCase();
+                        const entry = tagCounts.get(key);
+
+                        if (entry) {
+                            entry.count++;
+                        } else {
+                            tagCounts.set(key, { name: tag, count: 1 });
+                        }
+                    });
+                });
+                const mostCompletedTags = [...tagCounts.values()]
+                    .sort((a, b) =>
+                        b.count - a.count ||
+                        a.name.localeCompare(b.name, "pl")
+                    )
+                    .slice(0, 3);
+
                 return {
 
                     name:
@@ -573,25 +636,11 @@ async function loadLeaderboard() {
                     top50:
                         top50,
 
-                    demons:
-                        playerDemons
-                            .map(demonName => {
-                                const name = String(demonName).trim();
-                                const demon = levelMap[name.toLowerCase()] ||
-                                    levelMap[name];
+                    tags:
+                        mostCompletedTags,
 
-                                return {
-                                    name: demon?.level.name || name,
-                                    rank: demon?.rank,
-                                    id: demon?.level.id,
-                                    author: demon?.level.Autor,
-                                    isNew: demon?.level.id != null &&
-                                        newLevelIds.has(String(demon.level.id)),
-                                    videoUrl: demon?.level.id != null
-                                        ? videoLinks.get(`${playerName.toLowerCase()}::${String(demon.level.id).trim().toLowerCase()}`)
-                                        : null
-                                };
-                            })
+                    demons:
+                        demons
 
                 };
 
@@ -698,6 +747,13 @@ async function loadLeaderboard() {
                         <span class="leaderboard-player-stats">
                             ${formatDemonCount(player.completed)} · Hardest: ${player.bestRank}
                         </span>
+                        ${player.tags.length
+                            ? `<span class="leaderboard-player-tags" aria-label="Najczęściej ukończone tagi">
+                                ${player.tags.map(tag => `
+                                    <span class="leaderboard-player-tag">${escapeHTML(tag.name)} <strong>${tag.count}</strong></span>
+                                `).join("")}
+                            </span>`
+                            : ""}
                     </span>
 
 
@@ -752,18 +808,20 @@ async function loadLeaderboard() {
                         return a.rank - b.rank;
                     })
                     .map(demon => `
-                    ${demon.videoUrl
-                        ? `<a class="leaderboard-demon leaderboard-demon-link" href="${escapeHTML(demon.videoUrl)}" target="_blank" rel="noopener noreferrer" title="Otwórz wideo ukończenia: ${escapeHTML(demon.name)}">`
-                        : `<div class="leaderboard-demon">`}
-                        ${demon.id
-                            ? `<img src="${THUMBNAIL_URL}/${encodeURIComponent(String(demon.id))}.webp" alt="" loading="lazy">`
-                            : ""}
+                    <div class="leaderboard-demon">
                         <span class="leaderboard-demon-info">
-                            <span class="leaderboard-demon-name">${escapeHTML(demon.name)}</span>
+                            <span class="leaderboard-demon-name">
+                                ${demon.id
+                                    ? `<a class="leaderboard-demon-level-link" href="./level.html?id=${encodeURIComponent(String(demon.id))}${LIST_PAGE_CONTEXT.isChallengeList ? "&list=zcl" : ""}">${escapeHTML(demon.name)}</a>`
+                                    : escapeHTML(demon.name)}
+                            </span>
                             <span class="leaderboard-demon-meta">
                                 ${demon.id ? `ID: ${escapeHTML(demon.id)}` : ""}
                                 ${demon.author
                                     ? ` · Autor: ${escapeHTML(Array.isArray(demon.author) ? demon.author.join(", ") : demon.author)}`
+                                    : ""}
+                                ${demon.videoUrl
+                                    ? ` · <a class="leaderboard-demon-video-link" href="${escapeHTML(demon.videoUrl)}" target="_blank" rel="noopener noreferrer">Wideo</a>`
                                     : ""}
                             </span>
                         </span>
@@ -771,7 +829,7 @@ async function loadLeaderboard() {
                             ${demon.rank ? `#${demon.rank}` : "Poza rankingiem"}
                             ${demon.isNew ? '<span class="leaderboard-demon-new">NEW</span>' : ""}
                         </span>
-                    ${demon.videoUrl ? "</a>" : "</div>"}
+                    </div>
                 `).join("");
 
                 const demonDetails = player.demons.length

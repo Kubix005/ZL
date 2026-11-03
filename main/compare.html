@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zwariowana Lista - Porównaj graczy</title>
-    <link rel="stylesheet" href="./assets/css/style.css?v=1.4.0">
+    <link rel="stylesheet" href="./assets/css/style.css?v=1.4.2">
 </head>
 <body class="compare-body">
     <header id="hejder">
@@ -69,120 +69,77 @@
             select.disabled = players.length === 0;
         }
 
-        function getCatchUpPlans(player, pointDifference, demonPool) {
+        function getLevelTags(level) {
+            const value = level.Tag ?? level.tag;
+            const tags = Array.isArray(value)
+                ? value
+                : value == null
+                    ? []
+                    : [value];
+
+            return [...new Set(
+                tags
+                    .map(tag => String(tag ?? "").trim().toLowerCase())
+                    .filter(Boolean)
+            )];
+        }
+
+        function getPlayerTagCounts(player, demonPool) {
             const completedDemons = new Set(
                 player.demons.map(name => String(name).trim().toLowerCase())
             );
+            const tagCounts = new Map();
+
+            demonPool
+                .filter(demon => completedDemons.has(demon.name.toLowerCase()))
+                .forEach(demon => {
+                    demon.tags.forEach(tag => {
+                        tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+                    });
+                });
+
+            return tagCounts;
+        }
+
+        function getTagAffinity(demon, tagCounts) {
+            return demon.tags.reduce(
+                (score, tag) => score + (tagCounts.get(tag) || 0),
+                0
+            );
+        }
+
+        function getCatchUpPlan(player, pointDifference, demonPool) {
+            const completedDemons = new Set(
+                player.demons.map(name => String(name).trim().toLowerCase())
+            );
+            const tagCounts = getPlayerTagCounts(player, demonPool);
             const availableDemons = demonPool.filter(
                 demon => !completedDemons.has(demon.name.toLowerCase())
             );
-            const completedRanks = player.demons
-                .map(name => ranksByName.get(String(name).trim().toLowerCase()))
-                .filter(Number.isInteger);
-            const bestRank = completedRanks.length
-                ? Math.min(...completedRanks)
-                : null;
-            const ownedDemons = player.demons.map(name => {
-                const normalizedName = String(name).trim().toLowerCase();
-                const rank = ranksByName.get(normalizedName);
-
-                return {
-                    name: String(name),
-                    points: rank ? getPoints(rank) : 0
-                };
-            });
-            const freeSlots = Math.max(0, 3 - ownedDemons.length);
-            const harderDemons = [];
-            const easierDemons = [];
-
-            let orderedDemons;
-
-            if (bestRank === null) {
-                orderedDemons = availableDemons.sort((a, b) => b.rank - a.rank);
-            } else {
-                availableDemons.forEach(demon => {
-                    if (demon.rank < bestRank) {
-                        harderDemons.push(demon);
-                    } else {
-                        easierDemons.push(demon);
-                    }
-                });
-
-                harderDemons.sort((a, b) => b.rank - a.rank);
-                easierDemons.sort((a, b) => a.rank - b.rank);
-                orderedDemons = [...harderDemons, ...easierDemons];
-            }
-
-            const bestPlans = new Map();
-
-            for (let count = 1; count <= 3; count++) {
-                const replacedDemons = ownedDemons
-                    .slice()
-                    .sort((a, b) => a.points - b.points)
-                    .slice(0, Math.max(0, count - freeSlots));
-                const replacedPoints = replacedDemons.reduce(
-                    (total, demon) => total + demon.points,
-                    0
+            const demons = availableDemons
+                .sort((a, b) =>
+                    getTagAffinity(b, tagCounts) - getTagAffinity(a, tagCounts) ||
+                    b.points - a.points ||
+                    a.rank - b.rank
                 );
-                let bestPlan = null;
+            const chosenDemons = [];
+            let netPoints = 0;
 
-                function search(startIndex, chosenDemons, addedPoints, progressionScore) {
-                    if (chosenDemons.length === count) {
-                        const netPoints = addedPoints - replacedPoints;
-                        const reachesTarget = netPoints >= pointDifference;
-                        const bestReachesTarget =
-                            bestPlan && bestPlan.netPoints >= pointDifference;
-                        const isBetter = !bestPlan ||
-                            (reachesTarget && !bestReachesTarget) ||
-                            (reachesTarget === bestReachesTarget && reachesTarget &&
-                                netPoints < bestPlan.netPoints) ||
-                            (reachesTarget === bestReachesTarget && !reachesTarget &&
-                                netPoints > bestPlan.netPoints) ||
-                            (netPoints === bestPlan.netPoints &&
-                                progressionScore < bestPlan.progressionScore);
-
-                        if (isBetter) {
-                            bestPlan = {
-                                demons: [...chosenDemons],
-                                replacedDemons: [...replacedDemons],
-                                netPoints,
-                                progressionScore
-                            };
-                        }
-
-                        return;
-                    }
-
-                    const remaining = count - chosenDemons.length;
-
-                    for (
-                        let index = startIndex;
-                        index <= orderedDemons.length - remaining;
-                        index++
-                    ) {
-                        const demon = orderedDemons[index];
-                        chosenDemons.push(demon);
-                        search(
-                            index + 1,
-                            chosenDemons,
-                            addedPoints + demon.points,
-                            progressionScore + index
-                        );
-                        chosenDemons.pop();
-                    }
+            for (const demon of demons) {
+                if (netPoints >= pointDifference) {
+                    break;
                 }
 
-                search(0, [], 0, 0);
-
-                if (bestPlan && bestPlan.netPoints > 0) {
-                    bestPlans.set(count, bestPlan);
-                }
+                chosenDemons.push(demon);
+                netPoints += demon.points;
             }
 
-            return bestPlans;
+            return chosenDemons.length
+                ? { count: chosenDemons.length, demons: chosenDemons, netPoints }
+                : null;
         }
 
-        function getAlternativePlans(player, comparedPlayer, demonPool) {
+        function getAlternativePlan(player, comparedPlayer, pointDifference, demonPool) {
             const completedDemons = new Set(
                 [player, comparedPlayer].flatMap(completedPlayer =>
                     completedPlayer.demons.map(name =>
@@ -193,6 +150,7 @@
             const availableDemons = demonPool.filter(
                 demon => !completedDemons.has(demon.name.toLowerCase())
             );
+            const tagCounts = getPlayerTagCounts(player, demonPool);
             const completedRanks = player.demons
                 .map(name => ranksByName.get(String(name).trim().toLowerCase()))
                 .filter(Number.isInteger);
@@ -201,6 +159,13 @@
                 : null;
 
             availableDemons.sort((a, b) => {
+                const tagAffinityDifference =
+                    getTagAffinity(b, tagCounts) - getTagAffinity(a, tagCounts);
+
+                if (tagAffinityDifference !== 0) {
+                    return tagAffinityDifference;
+                }
+
                 if (bestRank === null) {
                     return b.rank - a.rank;
                 }
@@ -217,20 +182,21 @@
                     : a.rank - b.rank;
             });
 
-            return [1, 2, 3]
-                .filter(count => availableDemons.length >= count)
-                .map(count => {
-                    const demons = availableDemons.slice(0, count);
+            const demons = [];
+            let totalPoints = 0;
 
-                    return {
-                        count,
-                        demons,
-                        totalPoints: demons.reduce(
-                            (total, demon) => total + demon.points,
-                            0
-                        )
-                    };
-                });
+            for (const demon of availableDemons) {
+                if (totalPoints >= pointDifference) {
+                    break;
+                }
+
+                demons.push(demon);
+                totalPoints += demon.points;
+            }
+
+            return demons.length
+                ? { count: demons.length, demons, totalPoints }
+                : null;
         }
 
         function renderComparison(players, demonPool) {
@@ -250,21 +216,27 @@
             if (difference > 0) {
                 const trailingPlayer =
                     playerA.points < playerB.points ? playerA : playerB;
-                const catchUpPlans =
-                    getCatchUpPlans(trailingPlayer, difference, demonPool);
-                const alternativePlans =
-                    getAlternativePlans(
+                const catchUpPlan =
+                    getCatchUpPlan(trailingPlayer, difference, demonPool);
+                const alternativePlan =
+                    getAlternativePlan(
                         trailingPlayer,
                         trailingPlayer === playerA ? playerB : playerA,
+                        difference,
                         demonPool
                     );
-                const displayedPlans = showAlternativePlans
-                    ? [...alternativePlans.map(plan => [plan.count, plan])]
-                    : [...catchUpPlans.entries()];
+                const hasCompletedTags =
+                    getPlayerTagCounts(trailingPlayer, demonPool).size > 0;
+                const displayedPlan = showAlternativePlans
+                    ? alternativePlan
+                    : catchUpPlan;
+                const displayedPlans = displayedPlan
+                    ? [[displayedPlan.count, displayedPlan]]
+                    : [];
                 const planCards = displayedPlans.map(([count, plan]) => `
                     <article class="catch-up-option">
                         <h3>${count} ${LIST_PAGE_CONTEXT.isChallengeList ? count === 1 ? "wyzwanie" : "wyzwania" : count === 1 ? "demon" : "demony"}</h3>
-                        <strong class="catch-up-total">+${(showAlternativePlans ? plan.totalPoints : plan.netPoints).toLocaleString("pl-PL")} ZLP${showAlternativePlans ? "" : ""}</strong>
+                        <strong class="catch-up-total">+${(showAlternativePlans ? plan.totalPoints : plan.netPoints).toLocaleString("pl-PL")} ZLP</strong>
                         <ol class="catch-up-list">
                             ${plan.demons.map(demon => `
                                 <li>
@@ -274,14 +246,6 @@
                                 </li>
                             `).join("")}
                         </ol>
-                        ${!showAlternativePlans && plan.replacedDemons.length
-                            ? `<p class="catch-up-replaced">
-                                    Z puli wypadają: ${plan.replacedDemons.map(demon => escapeHTML(demon.name)).join(", ")}
-                                    (−${plan.replacedDemons.reduce((total, demon) => total + demon.points, 0).toLocaleString("pl-PL")} ZLP)
-                               </p>`
-                            : !showAlternativePlans
-                                ? '<p class="catch-up-replaced">Wolne miejsce w puli — nic nie wypada.</p>'
-                                : ""}
                     </article>
                 `).join("");
                 const recommendationContent = planCards ||
@@ -295,8 +259,11 @@
                                 class="catch-up-toggle"
                                 type="button"
                                 aria-pressed="${showAlternativePlans}"
-                            >${showAlternativePlans ? "Pokaż propozycje z limitem 3 demonów" : "Alternatywa"}</button>
+                            >${showAlternativePlans ? "Pokaż najszybsze nadrabianie" : "Pokaż alternatywną strategię"}</button>
                         </div>
+                        ${hasCompletedTags
+                            ? '<p class="compare-tag-note">Propozycje uwzględniają tagi leveli ukończonych przez gracza.</p>'
+                            : ""}
                         <div class="catch-up-options">${recommendationContent}</div>
                     </div>
                 `;
@@ -398,6 +365,7 @@
                     .map((level, index) => ({
                         name: String(level.name).trim(),
                         id: level.id == null ? null : String(level.id).trim(),
+                        tags: getLevelTags(level),
                         rank: index + 1,
                         points: getPoints(index + 1)
                     }));

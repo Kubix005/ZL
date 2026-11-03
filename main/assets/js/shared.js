@@ -125,6 +125,8 @@ function getPlayerPackStatuses(player, packs, levels) {
 if (LIST_PAGE_CONTEXT.isChallengeList) {
     const listSpecificPages = new Set([
         "leaderboard.html",
+        "level.html",
+        "levels.html",
         "recently.html",
         "winners.html",
         "compare.html",

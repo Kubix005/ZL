@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zwariowana Lista - Paczki ZCL</title>
-    <link rel="stylesheet" href="./assets/css/style.css?v=1.4.0">
+    <link rel="stylesheet" href="./assets/css/style.css?v=1.4.6">
 </head>
 <body>
     <header id="hejder">
@@ -79,6 +79,30 @@
                 }));
 
                 container.innerHTML = packDetails.map(pack => {
+                    let gridSide = Math.floor(Math.sqrt(pack.levels.length));
+                    if (pack.levels.length > 1 && pack.levels.length < 4) {
+                        gridSide = 2;
+                    }
+
+                    const mainGridSize = Math.min(
+                        gridSide * gridSide,
+                        pack.levels.length
+                    );
+                    const renderPackLevel = level => `
+                        <li>
+                            <span class="pack-level-rank">#${level.rank}</span>
+                            <strong>${escapeHTML(level.name)}</strong>
+                            <span class="pack-level-points">${level.points.toLocaleString("pl-PL")} ZLP</span>
+                        </li>
+                    `;
+                    const mainLevelsMarkup = pack.levels
+                        .slice(0, mainGridSize)
+                        .map(renderPackLevel)
+                        .join("");
+                    const remainingLevelsMarkup = pack.levels
+                        .slice(mainGridSize)
+                        .map(renderPackLevel)
+                        .join("");
                     const completers = playerStatuses
                         .filter(player =>
                             player.name &&
@@ -87,19 +111,12 @@
                             )
                         )
                         .map(player => player.name);
-                    const levelsMarkup = pack.levels.map(level => `
-                        <li>
-                            <span class="pack-level-rank">#${level.rank}</span>
-                            <span>${escapeHTML(level.name)}</span>
-                            <span class="pack-level-points">${level.points.toLocaleString("pl-PL")} ZLP</span>
-                        </li>
-                    `).join("");
                     const completersMarkup = completers.length
                         ? completers.map(escapeHTML).join(", ")
                         : "Jeszcze nikt nie ukończył tej paczki.";
 
                     return `
-                        <article class="pack-card">
+                        <article class="pack-card${gridSide >= 5 ? " pack-card-wide" : ""}">
                             <header class="pack-card-header">
                                 <h2>${escapeHTML(pack.name)}</h2>
                             </header>
@@ -111,12 +128,12 @@
                                 Średnia punktów za ${pack.levels.length}
                                 ${pack.levels.length === 1 ? "level" : "levele"} w paczce
                             </p>
-                            <div class="pack-levels-heading" aria-hidden="true">
-                                <span></span>
-                                <span>Level</span>
-                                <span>Punkty</span>
-                            </div>
-                            <ul class="pack-levels">${levelsMarkup}</ul>
+                            <h3 class="pack-levels-title">Levele w paczce</h3>
+                            <ul class="pack-levels" style="--pack-grid-side: ${gridSide}">${mainLevelsMarkup}</ul>
+                            ${remainingLevelsMarkup
+                                ? `<h3 class="pack-levels-title pack-levels-remainder-title">Pozostałe levele</h3>
+                                   <ul class="pack-levels pack-levels-remainder" style="--pack-grid-side: ${gridSide}">${remainingLevelsMarkup}</ul>`
+                                : ""}
                             <p class="pack-completions">
                                 <strong>Ukończona przez:</strong> ${completersMarkup}
                             </p>

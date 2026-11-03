@@ -362,8 +362,10 @@ function generateDemonCards() {
         name.className =
             "demon-name";
 
-        const nameTitle = document.createElement("span");
-        nameTitle.className = "demon-name-title";
+        const nameTitle = document.createElement("a");
+        nameTitle.className = "demon-name-title demon-name-link";
+        nameTitle.href =
+            `../../level.html?id=${encodeURIComponent(String(level.id))}${LIST_NAME === "ZCL" ? "&list=zcl" : ""}`;
         nameTitle.textContent = level.name;
         name.appendChild(nameTitle);
 

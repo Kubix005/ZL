@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zwariowana Lista - Levele ZLL</title>
+    <link rel="stylesheet" href="./assets/css/style.css?v=1.4.5">
+</head>
+<body>
+    <header id="hejder">
+        <a href="index.html" class="header-home">Zwariowana Lista</a>
+    </header>
+
+    <nav class="page-links" aria-label="Powiązane strony">
+        <a href="leaderboard.html" class="leaderboard-button">LEADERBOARD</a>
+        <a href="lists/zll/index.html" class="leaderboard-button">ZLL</a>
+        <a href="lists/challenge/index.html" class="leaderboard-button">ZCL</a>
+    </nav>
+
+    <main class="levels-page">
+        <h1 class="levels-title">LEVELE ZLL</h1>
+        <p class="levels-description">Wybierz level, aby zobaczyć jego szczegóły i zwycięzców.</p>
+        <div id="levels-list" class="levels-catalog" aria-live="polite">
+            <p class="level-page-message">Wczytywanie leveli...</p>
+        </div>
+    </main>
+
+    <script src="./assets/js/shared.js?v=1.4.1"></script>
+    <script>
+        function escapeHTML(value) {
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function getLevelTags(level) {
+            const value = level.Tag ?? level.tag;
+            const tags = Array.isArray(value)
+                ? value
+                : value == null
+                    ? []
+                    : [value];
+
+            return [...new Set(
+                tags
+                    .map(tag => String(tag ?? "").trim())
+                    .filter(Boolean)
+            )];
+        }
+
+        async function loadLevelsCatalog() {
+            const container = document.getElementById("levels-list");
+            const levelsUrl = LIST_PAGE_CONTEXT.levelsUrl;
+            const playersUrl = LIST_PAGE_CONTEXT.playersUrl;
+            const playersFile = playersUrl.split("/").pop();
+
+            try {
+                const [levelsResponse, playersResponse] = await Promise.all([
+                    fetch(levelsUrl, { cache: "no-cache" }),
+                    fetch(playersUrl, { cache: "no-cache" })
+                ]);
+
+                if (!levelsResponse.ok || !playersResponse.ok) {
+                    throw new Error(`Nie udało się wczytać leveli lub pliku ${playersFile}.`);
+                }
+
+                const [levelsData, players] = await Promise.all([
+                    levelsResponse.json(),
+                    playersResponse.json()
+                ]);
+
+                if (!Array.isArray(levelsData) || !Array.isArray(players)) {
+                    throw new Error("Pliki leveli i graczy muszą zawierać tablice.");
+                }
+
+                const levels = levelsData.filter(level => !isLegacyLevel(level));
+                const gridSide = Math.floor(Math.sqrt(levels.length));
+                const mainGridCount = gridSide * gridSide;
+                const playerCompletions = players
+                    .map(player => ({
+                        name: String(player.Player ?? "").trim(),
+                        completions: new Set(
+                            getPlayerCompletions(player)
+                                .map(completion => String(completion).trim().toLowerCase())
+                        )
+                    }))
+                    .filter(player => player.name);
+                const isChallengeList = LIST_PAGE_CONTEXT.isChallengeList;
+
+                document.title = `Zwariowana Lista - Levele ${isChallengeList ? "ZCL" : "ZLL"}`;
+                document.querySelector(".levels-title").textContent =
+                    `LEVELE ${isChallengeList ? "ZCL" : "ZLL"}`;
+
+                if (!levels.length) {
+                    container.innerHTML = '<p class="level-page-message">Brak leveli do wyświetlenia.</p>';
+                    return;
+                }
+
+                const renderLevelCard = (level, index) => {
+                    const id = String(level.id ?? "").trim();
+                    const name = String(level.name ?? "Nieznany level").trim();
+                    const nameKey = name.toLowerCase();
+                    const idKey = id.toLowerCase();
+                    const winners = playerCompletions.filter(player =>
+                        player.completions.has(nameKey) ||
+                        (idKey && player.completions.has(idKey))
+                    ).length;
+                    const tags = getLevelTags(level);
+                    const rank = index + 1;
+                    const detailsUrl = `./level.html?id=${encodeURIComponent(id)}${isChallengeList ? "&list=zcl" : ""}`;
+
+                    return `
+                        <a class="level-catalog-card" href="${detailsUrl}">
+                            <span class="level-catalog-rank">${rank <= 150 ? `#${rank}` : "Poza TOP 150"}</span>
+                            <span class="level-catalog-info">
+                                <strong>${escapeHTML(name)}</strong>
+                                ${tags.length
+                                    ? `<span class="level-catalog-tags">${tags.map(tag => `<span>${escapeHTML(tag)}</span>`).join("")}</span>`
+                                    : ""}
+                            </span>
+                            <span class="level-catalog-winners">${winners} ${winners === 1 ? "zwycięzca" : "zwycięzców"}</span>
+                        </a>
+                    `;
+                };
+                const levelsMarkup = levels
+                    .map(renderLevelCard)
+                    .join("");
+
+                container.innerHTML = `
+                    <div class="levels-catalog-grid" style="--levels-grid-side: ${gridSide}">
+                        ${levelsMarkup}
+                    </div>
+                `;
+            } catch (error) {
+                console.error("Nie udało się wczytać katalogu leveli:", error);
+                container.innerHTML = `
+                    <p class="level-page-message">
+                        Nie udało się wczytać leveli.
+                        <br><small>${escapeHTML(error.message)}</small>
+                    </p>
+                `;
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", loadLevelsCatalog);
+    </script>
+</body>
+</html>
