@@ -13,6 +13,7 @@ let levels = [];
 let players = [];
 let aredlRanks = {};
 let legacyLevelNames = new Set();
+let activeLevelCount = 0;
 
 function getChallengeCreditNames(levelName, field) {
     const levelKey = String(levelName).trim().toLowerCase();
@@ -129,9 +130,9 @@ async function loadLevels() {
                 .filter(isLegacyLevel)
                 .map(level => String(level.name).trim().toLowerCase())
         );
-        levels = data
-            .filter(level => !isLegacyLevel(level))
-            .slice(0, 150);
+        const activeLevels = data.filter(level => !isLegacyLevel(level));
+        activeLevelCount = activeLevels.length;
+        levels = activeLevels.slice(0, 150);
 
         await loadAredlRanks();
 
@@ -347,7 +348,7 @@ function generateDemonCards() {
             "image-points";
 
         points.textContent =
-            `${getPoints(rank)} ZLP`;
+            `${getPoints(rank, activeLevelCount)} ZLP`;
 
         imageWrapper.appendChild(points);
 
@@ -475,7 +476,7 @@ function generateRanking() {
             "points";
 
         pointsText.textContent =
-            `${getPoints(rank)} ZLP`;
+            `${getPoints(rank, activeLevelCount)} ZLP`;
 
 
         item.appendChild(rankText);
@@ -688,7 +689,7 @@ function showPlayer(player) {
         .reduce((total, demon) => {
         const card = findDemonById(demon) || findDemonByName(demon);
         const rank = getDemonRank(card);
-        return total + (rank ? getPoints(rank) : 0);
+        return total + (rank ? getPoints(rank, activeLevelCount) : 0);
     }, 0)} ZLP
 </span>
     `;

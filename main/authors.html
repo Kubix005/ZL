@@ -29,7 +29,7 @@
         </section>
     </main>
 
-    <script src="./assets/js/shared.js?v=1.3.1"></script>
+    <script src="./assets/js/shared.js?v=1.5.0"></script>
     <script>
         const LEVELS_URL = LIST_PAGE_CONTEXT.levelsUrl;
         const THUMBNAIL_URL =
@@ -70,9 +70,10 @@
                     throw new Error("levels.json must contain an array.");
                 }
 
-                const activeLevels = allLevels
-                    .filter(level => !isLegacyLevel(level))
-                    .slice(0, 150);
+                const allActiveLevels = allLevels
+                    .filter(level => !isLegacyLevel(level));
+                const activeLevelCount = allActiveLevels.length;
+                const activeLevels = allActiveLevels.slice(0, 150);
                 const authors = new Map();
 
                 activeLevels.forEach((level, index) => {
@@ -116,7 +117,7 @@
                                     >
                                     <div class="author-level-info">
                                         <h3>${escapeHTML(level.name)}</h3>
-                                        <span>TOP ${rank} - ${getPoints(rank)} ZLP</span>
+                                        <span>TOP ${rank} - ${getPoints(rank, activeLevelCount)} ZLP</span>
                                     </div>
                                 </div>
                             `).join("")}

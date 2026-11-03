@@ -63,7 +63,7 @@
         </div>
 
     </main>
-<script src="./assets/js/shared.js?v=1.4.0"></script>
+<script src="./assets/js/shared.js?v=1.5.0"></script>
 <script>
 
 
@@ -326,6 +326,7 @@ async function loadLeaderboard() {
         });
         const activeLevels = levels
             .filter(level => !isLegacyLevel(level));
+        const activeLevelCount = activeLevels.length;
         const now = new Date();
         const today = Date.UTC(
             now.getUTCFullYear(),
@@ -499,7 +500,7 @@ async function loadLeaderboard() {
                         // ---------------------------------
 
                         const points =
-                            getPoints(rank);
+                            getPoints(rank, activeLevelCount);
 
 
                         totalPoints += points;

@@ -76,7 +76,7 @@ Wspólne arkusze i skrypty są w `assets/css/` i `assets/js/`. Widoki list znajd
 
 ## Punktacja
 
-Punktacja opada po krzywej: TOP 1 daje 350 ZLP, TOP 2 około 326 ZLP, TOP 3 około 312 ZLP, TOP 50 daje 50 ZLP, a TOP 150 daje 1 ZLP. Wynik jest zaokrąglany do pełnych punktów ZLP; osobnej premii dla TOP 30–50 nie ma.
+Punktacja opada płynnie według wzoru `round(1 + 499 * ((N - r) / (N - 1))^1.8)`, gdzie `r` to pozycja levela, a `N` to liczba aktywnych leveli plus 20. TOP 1 daje 500 ZLP, a 1 ZLP przypada od rangi `N`; punkty pomiędzy nimi maleją stopniowo, bez osobnych progów dla TOP 10 czy TOP 20. ZLL i Challenge korzystają z tej samej krzywej, liczonej dla liczby aktywnych leveli na danej liście.
 
 ## Legacy levele
 

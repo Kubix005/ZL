@@ -47,6 +47,7 @@ function getPlayerPackStatuses(player, packs, levels) {
         throw new Error("Dane paczek lub leveli mają nieprawidłowy format.");
     }
 
+    const activeLevelCount = levels.filter(level => !isLegacyLevel(level)).length;
     const activeLevels = levels
         .filter(level => !isLegacyLevel(level))
         .slice(0, 150);
@@ -103,7 +104,7 @@ function getPlayerPackStatuses(player, packs, levels) {
                 name: String(entry.level.name).trim(),
                 id,
                 rank: entry.rank,
-                points: getPoints(entry.rank),
+                points: getPoints(entry.rank, activeLevelCount),
                 completed: completedIdentifiers.has(idKey) ||
                     completedIdentifiers.has(name.toLowerCase())
             };
@@ -148,23 +149,17 @@ if (LIST_PAGE_CONTEXT.isChallengeList) {
     });
 }
 
-function getPoints(rank) {
+function getPoints(rank, levelCount) {
     const maxPoints = 500;
-    const top50Points = 50;
     const minPoints = 1;
-    const curveEndRank = 20;
-    const maxRank = 150;
-    let points;
-
-    if (rank <= curveEndRank) {
-        const progress = (rank - 1) / (curveEndRank - 1);
-        points = maxPoints -
-            (maxPoints - top50Points) * Math.pow(progress, 0.65);
-    } else {
-        const progress = (rank - curveEndRank) / (maxRank - curveEndRank);
-        points = top50Points *
-            Math.pow(minPoints / top50Points, progress);
-    }
+    const exponent = 8;
+    const maxRank = levelCount + 20;
+    const progress = Math.max(
+        0,
+        Math.min(1, (maxRank - rank) / (maxRank - 1))
+    );
+    const points = minPoints +
+        (maxPoints - minPoints) * Math.pow(progress, exponent);
 
     return Math.round(points);
 }

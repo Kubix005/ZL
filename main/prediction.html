@@ -48,7 +48,7 @@
         <section id="prediction-result" class="prediction-result" aria-live="polite" hidden></section>
     </main>
 
-    <script src="./assets/js/shared.js?v=1.3.2"></script>
+    <script src="./assets/js/shared.js?v=1.5.0"></script>
     <script>
         const LEVELS_URL = "./lists/zll/levels.json";
         const AREDL_RANKS_URL = "./aredl-ranks.json";
@@ -61,6 +61,7 @@
         const resultContainer = document.getElementById("prediction-result");
 
         let activeLevels = [];
+        let activeLevelCount = 0;
         let aredlRanks = {};
         let aredlLevelsRequest;
 
@@ -103,7 +104,7 @@
                         currentAredlRank < aredlRank;
                 }).length;
             const rkRank = levelIndex + 1;
-            const points = getPoints(rkRank);
+            const points = getPoints(rkRank, activeLevelCount);
             const isExisting = existingIndex >= 0;
 
             resultContainer.classList.remove("prediction-error");
@@ -165,9 +166,9 @@
                 throw new Error("Dane listy ZLL lub rankingu AREDL mają nieprawidłowy format.");
             }
 
-            activeLevels = levelsData
-                .filter(level => !isLegacyLevel(level))
-                .slice(0, 150);
+            const allActiveLevels = levelsData.filter(level => !isLegacyLevel(level));
+            activeLevelCount = allActiveLevels.length;
+            activeLevels = allActiveLevels.slice(0, 150);
             aredlRanks = ranksData.ranks;
         }
 

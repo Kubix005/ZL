@@ -42,7 +42,7 @@
         </section>
     </main>
 
-    <script src="./assets/js/shared.js?v=1.4.0"></script>
+    <script src="./assets/js/shared.js?v=1.5.0"></script>
     <script>
         const PLAYERS_URL = LIST_PAGE_CONTEXT.playersUrl;
         const LEVELS_URL = LIST_PAGE_CONTEXT.levelsUrl;
@@ -358,15 +358,16 @@
                     throw new Error("Dane graczy, leveli lub paczek mają nieprawidłowy format.");
                 }
 
-                const demonPool = levelsData
-                    .filter(level => !isLegacyLevel(level))
+                const allActiveLevels = levelsData.filter(level => !isLegacyLevel(level));
+                const activeLevelCount = allActiveLevels.length;
+                const demonPool = allActiveLevels
                     .slice(0, 150)
                     .map((level, index) => ({
                         name: String(level.name).trim(),
                         id: level.id == null ? null : String(level.id).trim(),
                         tags: getLevelTags(level),
                         rank: index + 1,
-                        points: getPoints(index + 1)
+                        points: getPoints(index + 1, activeLevelCount)
                     }));
                 const namesByIdentifier = new Map();
                 ranksByName = new Map();
@@ -399,7 +400,7 @@
                         }
 
                         const rank = ranksByName.get(String(demonName).trim().toLowerCase());
-                        return total + (rank ? getPoints(rank) : 0);
+                        return total + (rank ? getPoints(rank, activeLevelCount) : 0);
                     }, 0);
                     const packs = LIST_PAGE_CONTEXT.isChallengeList
                         ? getPlayerPackStatuses(player, packsData, levelsData)

@@ -28,7 +28,7 @@
         </section>
     </main>
 
-    <script src="./assets/js/shared.js?v=1.3.2"></script>
+    <script src="./assets/js/shared.js?v=1.5.0"></script>
     <script>
         const LEVELS_URL = LIST_PAGE_CONTEXT.levelsUrl;
 
@@ -93,9 +93,10 @@
                     now.getUTCDate()
                 );
                 const firstIncludedDay = today - 6 * 24 * 60 * 60 * 1000;
-                const activeLevels = allLevels
-                    .filter(level => !isLegacyLevel(level))
-                    .slice(0, 150);
+                const allActiveLevels = allLevels
+                    .filter(level => !isLegacyLevel(level));
+                const activeLevelCount = allActiveLevels.length;
+                const activeLevels = allActiveLevels.slice(0, 150);
                 const recentLevels = activeLevels
                     .map((level, index) => {
                         const addedAt = level.AddedAt ?? level.addedAt;
@@ -135,7 +136,7 @@
                         <div class="new-level-content">
                             <h2>${escapeHTML(level.name)}</h2>
                             <p>ID: ${escapeHTML(level.id)}</p>
-                            <p>TOP ${rank} - ${getPoints(rank)} ZLP</p>
+                            <p>TOP ${rank} - ${getPoints(rank, activeLevelCount)} ZLP</p>
                             <p>Dodano: <time datetime="${escapeHTML(addedAt)}">${formatAddedDate(added.date)}</time></p>
                         </div>
                     </article>

@@ -19,7 +19,7 @@
         <p class="level-page-message">Wczytywanie levela...</p>
     </main>
 
-    <script src="./assets/js/shared.js?v=1.4.1"></script>
+    <script src="./assets/js/shared.js?v=1.5.0"></script>
     <script>
         const LEVEL_ID = new URLSearchParams(window.location.search).get("id");
         const LEVELS_URL = LIST_PAGE_CONTEXT.levelsUrl;
@@ -87,6 +87,7 @@
                 }
 
                 const activeLevels = levels.filter(level => !isLegacyLevel(level));
+                const activeLevelCount = activeLevels.length;
                 const levelIndex = activeLevels.findIndex(level =>
                     String(level.id ?? "").trim() === LEVEL_ID
                 );
@@ -130,7 +131,7 @@
                                 <div><dt>ID</dt><dd>${escapeHTML(level.id)}</dd></div>
                                 ${rank <= 150
                                     ? `<div><dt>Pozycja</dt><dd>#${rank}</dd></div>
-                                       <div><dt>Punkty</dt><dd>${getPoints(rank)} ZLP</dd></div>`
+                                       <div><dt>Punkty</dt><dd>${getPoints(rank, activeLevelCount)} ZLP</dd></div>`
                                     : '<div><dt>Pozycja</dt><dd>Poza TOP 150</dd></div>'}
                                 ${authors.length
                                     ? `<div><dt>${authors.length === 1 ? "Autor" : "Autorzy"}</dt><dd>${authors.map(escapeHTML).join(", ")}</dd></div>`

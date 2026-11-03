@@ -31,7 +31,7 @@
         </div>
     </main>
 
-    <script src="./assets/js/shared.js?v=1.3.2"></script>
+    <script src="./assets/js/shared.js?v=1.5.0"></script>
     <script>
         const PROGRESS_URL = "./progress.json";
         const PLAYERS_URL = "./players.json";
@@ -199,12 +199,14 @@
                     throw new Error("Pliki progresu, graczy i leveli muszą zawierać tablice.");
                 }
 
-                const levels = allLevels.filter(level => !isLegacyLevel(level)).slice(0, 150);
+                const allActiveLevels = allLevels.filter(level => !isLegacyLevel(level));
+                const activeLevelCount = allActiveLevels.length;
+                const levels = allActiveLevels.slice(0, 150);
                 const demonPool = levels.map((level, index) => ({
                     id: String(level.id),
                     name: String(level.name).trim(),
                     rank: index + 1,
-                    points: getPoints(index + 1)
+                    points: getPoints(index + 1, activeLevelCount)
                 }));
                 const levelsById = new Map(levels.map(level => [String(level.id), level]));
                 const playersByName = new Map(
