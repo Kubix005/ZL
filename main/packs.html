@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zwariowana Lista - Paczki ZCL</title>
+    <link rel="stylesheet" href="./assets/css/style.css?v=1.4.0">
+</head>
+<body>
+    <header id="hejder">
+        <a href="./index.html" class="header-home">Zwariowana Lista</a>
+    </header>
+
+    <nav class="page-links" aria-label="Powiązane strony">
+        <a href="./lists/challenge/index.html" class="leaderboard-button">ZCL</a>
+        <a href="./leaderboard.html?list=zcl" class="leaderboard-button">LEADERBOARD</a>
+    </nav>
+
+    <main class="packs-page">
+        <h1>PACZKI ZCL</h1>
+        <p class="packs-intro">
+            Za ukończenie wszystkich leveli w paczce gracz otrzymuje dodatkowe ZLP
+            równe średniej punktów za levele w tej paczce. Ukończone paczki wykrywamy
+            automatycznie na podstawie zapisanych przejść ZCL.
+        </p>
+        <section id="packs-list" class="packs-list" aria-live="polite">
+            <p class="packs-message">Wczytywanie paczek...</p>
+        </section>
+    </main>
+
+    <script src="./assets/js/shared.js?v=1.4.0"></script>
+    <script>
+        const PACKS_URL = "./lists/challenge/packs.json";
+        const LEVELS_URL = "./lists/challenge/levels.json";
+        const PLAYERS_URL = "./challenge-players.json";
+
+        function escapeHTML(value) {
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        async function loadPacks() {
+            const container = document.getElementById("packs-list");
+
+            try {
+                const responses = await Promise.all([
+                    fetch(PACKS_URL, { cache: "no-cache" }),
+                    fetch(LEVELS_URL, { cache: "no-cache" }),
+                    fetch(PLAYERS_URL, { cache: "no-cache" })
+                ]);
+                const [packsResponse, levelsResponse, playersResponse] = responses;
+
+                if (!packsResponse.ok || !levelsResponse.ok || !playersResponse.ok) {
+                    throw new Error("Nie udało się wczytać paczek, leveli lub graczy ZCL.");
+                }
+
+                const [packs, levels, players] = await Promise.all(
+                    responses.map(response => response.json())
+                );
+
+                if (!Array.isArray(packs) || !Array.isArray(levels) || !Array.isArray(players)) {
+                    throw new Error("Pliki paczek, leveli i graczy muszą zawierać tablice.");
+                }
+
+                if (!packs.length) {
+                    container.innerHTML =
+                        '<p class="packs-message">Nie dodano jeszcze żadnych paczek. Można je zdefiniować w pliku lists/challenge/packs.json.</p>';
+                    return;
+                }
+
+                const packDetails = getPlayerPackStatuses({}, packs, levels);
+                const playerStatuses = players.map(player => ({
+                    name: String(player.Player || "").trim(),
+                    packs: getPlayerPackStatuses(player, packs, levels)
+                }));
+
+                container.innerHTML = packDetails.map(pack => {
+                    const completers = playerStatuses
+                        .filter(player =>
+                            player.name &&
+                            player.packs.some(status =>
+                                status.name === pack.name && status.completed
+                            )
+                        )
+                        .map(player => player.name);
+                    const levelsMarkup = pack.levels.map(level => `
+                        <li>
+                            <span class="pack-level-rank">#${level.rank}</span>
+                            <span>${escapeHTML(level.name)}</span>
+                            <span class="pack-level-points">${level.points.toLocaleString("pl-PL")} ZLP</span>
+                        </li>
+                    `).join("");
+                    const completersMarkup = completers.length
+                        ? completers.map(escapeHTML).join(", ")
+                        : "Jeszcze nikt nie ukończył tej paczki.";
+
+                    return `
+                        <article class="pack-card">
+                            <header class="pack-card-header">
+                                <h2>${escapeHTML(pack.name)}</h2>
+                            </header>
+                            <div class="pack-bonus">
+                                <span>Bonus za paczkę</span>
+                                <strong>+${pack.points.toLocaleString("pl-PL")} ZLP</strong>
+                            </div>
+                            <p class="pack-score-note">
+                                Średnia punktów za ${pack.levels.length}
+                                ${pack.levels.length === 1 ? "level" : "levele"} w paczce
+                            </p>
+                            <div class="pack-levels-heading" aria-hidden="true">
+                                <span></span>
+                                <span>Level</span>
+                                <span>Punkty</span>
+                            </div>
+                            <ul class="pack-levels">${levelsMarkup}</ul>
+                            <p class="pack-completions">
+                                <strong>Ukończona przez:</strong> ${completersMarkup}
+                            </p>
+                        </article>
+                    `;
+                }).join("");
+            } catch (error) {
+                console.error("Nie udało się wczytać paczek ZCL:", error);
+                container.innerHTML = `
+                    <p class="packs-message">
+                        Nie udało się wczytać paczek.
+                        <br><small>${escapeHTML(error.message)}</small>
+                    </p>
+                `;
+            }
+        }
+
+        if (!LIST_PAGE_CONTEXT.isChallengeList) {
+            document.querySelector(".packs-page").innerHTML =
+                '<p class="packs-message">Strona paczek jest dostępna z listy ZCL.</p>';
+        } else {
+            document.addEventListener("DOMContentLoaded", loadPacks);
+        }
+    </script>
+</body>
+</html>

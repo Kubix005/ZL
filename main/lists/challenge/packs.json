@@ -1,0 +1,36 @@
+[
+  {
+    "name": "Przeróbki Leveli",
+    "levels": [
+        { "name": "Larpiety", "id": "144018294" },
+        { "name": "Nudbet Circles", "id": "111789301" },
+        { "name": "sevvend club", "id": "151016391" }
+    ]
+  },
+  {
+    "name": "Cube Trials",
+    "levels": [
+    { "name": "Mangetsuu 2", "id": "148008360" },
+      { "name": "i fear these jumps", "id": "148683261" },
+      { "name": "Armia Szczupakuw", "id": "144125641" }
+    ]
+  },
+  {
+    "name": "Wave CrossOver",
+    "levels": [
+      { "name": "Wave Challenge X", "id": "111701880" },
+      { "name": "Wave Challenge 9", "id": "108872274" },
+      { "name": "Koszatniczka Wave", "id": "131174727" },
+      { "name": "Fallen Wave", "id": "127099803" }
+    ]
+  },
+  {
+    "name": "Top Jedynki",
+    "levels": [
+      { "name": "pOWOdzonka", "id": "151516478" },
+      { "name": "Larpiety", "id": "144018294" },
+      { "name": "In the Dark", "id": "126372991" },
+      { "name": "CORSO", "id": "136957633" }
+    ]
+  }
+]

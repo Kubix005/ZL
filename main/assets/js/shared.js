@@ -42,6 +42,86 @@ function getPlayerCompletions(player) {
     }).map(String);
 }
 
+function getPlayerPackStatuses(player, packs, levels) {
+    if (!Array.isArray(packs) || !Array.isArray(levels)) {
+        throw new Error("Dane paczek lub leveli mają nieprawidłowy format.");
+    }
+
+    const activeLevels = levels
+        .filter(level => !isLegacyLevel(level))
+        .slice(0, 150);
+    const levelsById = new Map(
+        activeLevels
+            .filter(level => level.id != null)
+            .map((level, index) => [
+                String(level.id).trim().toLowerCase(),
+                { level, rank: index + 1 }
+            ])
+    );
+    const completedIdentifiers = new Set(
+        getPlayerCompletions(player)
+            .map(completion => String(completion).trim().toLowerCase())
+    );
+    const seenPackNames = new Set();
+
+    return packs.map((pack, packIndex) => {
+        const packName = typeof pack?.name === "string" ? pack.name.trim() : "";
+        const packKey = packName.toLowerCase();
+
+        if (!packName || seenPackNames.has(packKey)) {
+            throw new Error(`Nieprawidłowa lub powielona nazwa paczki (wpis ${packIndex + 1}).`);
+        }
+
+        seenPackNames.add(packKey);
+
+        if (!Array.isArray(pack.levels) || pack.levels.length === 0) {
+            throw new Error(`Paczka "${packName}" musi zawierać co najmniej jeden level.`);
+        }
+
+        const seenLevelIds = new Set();
+        const packLevels = pack.levels.map((member, memberIndex) => {
+            const id = String(member?.id ?? "").trim();
+            const name = typeof member?.name === "string" ? member.name.trim() : "";
+            const idKey = id.toLowerCase();
+            const entry = levelsById.get(idKey);
+
+            if (!id || !name || !entry) {
+                throw new Error(`Nieprawidłowy level ${memberIndex + 1} w paczce "${packName}".`);
+            }
+
+            if (seenLevelIds.has(idKey)) {
+                throw new Error(`Powielony level "${name}" w paczce "${packName}".`);
+            }
+
+            if (String(entry.level.name).trim().toLowerCase() !== name.toLowerCase()) {
+                throw new Error(`Nazwa levela o ID ${id} nie zgadza się z levels.json.`);
+            }
+
+            seenLevelIds.add(idKey);
+
+            return {
+                name: String(entry.level.name).trim(),
+                id,
+                rank: entry.rank,
+                points: getPoints(entry.rank),
+                completed: completedIdentifiers.has(idKey) ||
+                    completedIdentifiers.has(name.toLowerCase())
+            };
+        });
+        const points = Math.round(
+            packLevels.reduce((total, level) => total + level.points, 0) /
+            packLevels.length
+        );
+
+        return {
+            name: packName,
+            levels: packLevels,
+            points,
+            completed: packLevels.every(level => level.completed)
+        };
+    });
+}
+
 if (LIST_PAGE_CONTEXT.isChallengeList) {
     const listSpecificPages = new Set([
         "leaderboard.html",
@@ -49,7 +129,8 @@ if (LIST_PAGE_CONTEXT.isChallengeList) {
         "winners.html",
         "compare.html",
         "new-levels.html",
-        "authors.html"
+        "authors.html",
+        "packs.html"
     ]);
 
     document.querySelectorAll(".page-links a, .action-links a").forEach(link => {

@@ -12,7 +12,7 @@
 
     <title>Zwariowana Lista - Ranking graczy ZLL</title>
 
-    <link rel="stylesheet" href="./assets/css/style.css?v=1.3.7">
+    <link rel="stylesheet" href="./assets/css/style.css?v=1.4.0">
 
 </head>
 
@@ -54,7 +54,7 @@
         </div>
 
         <div class="leaderboard-subtitle">
-            Ranking na podstawie ukończonych demonów
+            Ranking na podstawie ukończonych leveli i paczek
         </div>
 
         <div id="leaderboard-list">
@@ -66,7 +66,7 @@
         </div>
 
     </main>
-<script src="./assets/js/shared.js?v=1.3.4"></script>
+<script src="./assets/js/shared.js?v=1.4.0"></script>
 <script>
 
 
@@ -79,6 +79,12 @@ const PLAYERS_FILE = PLAYERS_URL.split("/").pop();
 const LEVELS_URL = LIST_PAGE_CONTEXT.levelsUrl;
 const THUMBNAIL_URL = "https://raw.githubusercontent.com/All-Rated-Extreme-Demon-List/Thumbnails/main/levels/cards";
 const LINKS_URL = LIST_PAGE_CONTEXT.linksUrl;
+const PACKS_URL = "./lists/challenge/packs.json";
+
+if (LIST_PAGE_CONTEXT.isChallengeList) {
+    document.querySelector(".leaderboard-subtitle").textContent =
+        "Punkty za ukończone wyzwania oraz paczki ZCL";
+}
 
 
 // =====================================================
@@ -170,7 +176,8 @@ async function loadLeaderboard() {
         const [
             playersResponse,
             levelsResponse,
-            linksResponse
+            linksResponse,
+            packsResponse
         ] = await Promise.all([
 
             fetch(PLAYERS_URL, {
@@ -183,7 +190,11 @@ async function loadLeaderboard() {
 
             fetch(LINKS_URL, {
                 cache: "no-cache"
-            })
+            }),
+
+            LIST_PAGE_CONTEXT.isChallengeList
+                ? fetch(PACKS_URL, { cache: "no-cache" })
+                : Promise.resolve(null)
 
         ]);
 
@@ -207,6 +218,12 @@ async function loadLeaderboard() {
             );
         }
 
+        if (LIST_PAGE_CONTEXT.isChallengeList && !packsResponse.ok) {
+            throw new Error(
+                `Nie można wczytać ${PACKS_URL}`
+            );
+        }
+
 
         const players =
             await playersResponse.json();
@@ -216,6 +233,9 @@ async function loadLeaderboard() {
             await levelsResponse.json();
 
         const links = await linksResponse.json();
+        const packs = LIST_PAGE_CONTEXT.isChallengeList
+            ? await packsResponse.json()
+            : [];
 
 
         if (!Array.isArray(players)) {
@@ -234,6 +254,12 @@ async function loadLeaderboard() {
         if (!Array.isArray(links)) {
             throw new Error(
                 "links.json musi zawierać tablicę"
+            );
+        }
+
+        if (!Array.isArray(packs)) {
+            throw new Error(
+                `${PACKS_URL} musi zawierać tablicę`
             );
         }
 
@@ -508,6 +534,14 @@ async function loadLeaderboard() {
                     }
                 );
 
+                const playerPacks = LIST_PAGE_CONTEXT.isChallengeList
+                    ? getPlayerPackStatuses(player, packs, levels)
+                        .filter(pack => pack.completed)
+                    : [];
+                totalPoints += playerPacks.reduce(
+                    (total, pack) => total + pack.points,
+                    0
+                );
 
                 const playerName = String(player.Player || "").trim();
 
@@ -518,6 +552,9 @@ async function loadLeaderboard() {
 
                     points:
                         totalPoints,
+
+                    packs:
+                        playerPacks,
 
                     completed:
                         completed,
@@ -737,7 +774,7 @@ async function loadLeaderboard() {
                     ${demon.videoUrl ? "</a>" : "</div>"}
                 `).join("");
 
-                details.innerHTML = player.demons.length
+                const demonDetails = player.demons.length
                     ? `
                         <div class="leaderboard-demons-title">
                             Ukończone ${LIST_PAGE_CONTEXT.isChallengeList ? "wyzwania" : "demony"} gracza ${escapeHTML(player.name)}
@@ -747,6 +784,23 @@ async function loadLeaderboard() {
                         </div>
                     `
                     : `<div class="leaderboard-demons-empty">Brak zapisanych ${LIST_PAGE_CONTEXT.isChallengeList ? "wyzwań" : "demonów"}.</div>`;
+                const packDetails = player.packs.length
+                    ? `
+                        <div class="leaderboard-demons-title">
+                            Ukończone paczki · dodatkowe ${player.packs.reduce((total, pack) => total + pack.points, 0)} ZLP
+                        </div>
+                        <div class="leaderboard-pack-list">
+                            ${player.packs.map(pack => `
+                                <div class="leaderboard-pack">
+                                    <strong>${escapeHTML(pack.name)}</strong>
+                                    <span>+${pack.points} ZLP</span>
+                                </div>
+                            `).join("")}
+                        </div>
+                    `
+                    : "";
+
+                details.innerHTML = `${demonDetails}${packDetails}`;
 
                 row.addEventListener("click", () => {
                     const isExpanded =

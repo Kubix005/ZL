@@ -35,6 +35,21 @@ Opcjonalnie level ZCL może mieć tagi w polu `Tag`, zapisane jako tablica tekst
 
 `Verified` i `Built` są listami nazw wyzwań przypisanych danemu graczowi; jeśli gracz nie ma jeszcze takich wpisów, użyj pustej tablicy. Gdy nazwa wyzwania istnieje na ZCL, karta wyzwania pokazuje graczy z pól `Verified` („Zweryfikowane przez”) i `Built` („Zbudowane przez”). Wyzwanie z `Verified` liczy się jako completion w ZCL, tak samo jak wpis w `ChallengeDemons`; to samo wyzwanie zapisane w obu polach liczy się tylko raz. `Built` nie wpływa na ukończenia ani punkty.
 
+Paczki ZCL definiuje `lists/challenge/packs.json`. Każda paczka ma nazwę i listę leveli wskazanych nazwą oraz ID z `lists/challenge/levels.json`:
+
+```json
+[
+  {
+    "name": "Nazwa paczki",
+    "levels": [
+      { "name": "Nazwa levela", "id": "123456" }
+    ]
+  }
+]
+```
+
+Gracz automatycznie zalicza paczkę po ukończeniu wszystkich jej leveli zapisanych w `ChallengeDemons` lub `Verified`; `Built` się nie liczy. Za paczkę przyznawany jest dodatkowy bonus równy średniej punktów jej leveli, zaokrąglonej do pełnego ZLP.
+
 Podstrony rankingu, ostatnich ukończeń, zwycięzców i porównania wybierają odpowiedni plik graczy i zestaw ukończeń. Linki otwierane z ZCL przekazują `?list=zcl`, dzięki czemu korzystają z `lists/challenge/levels.json` i `challenge-players.json`; bez tego parametru wyświetlane są dane ZLL z `lists/zll/levels.json` i `players.json`.
 
 Linki do filmów z ukończeń zapisuj osobno dla każdej listy: ZCL w `links.json`, a ZLL w `lists/zll/levels-links.json`. Oba pliki używają tego samego formatu; każdy wpis łączy nazwę gracza, listę ID leveli z odpowiedniego `levels.json` pokazanych w filmie i adres tego filmu:

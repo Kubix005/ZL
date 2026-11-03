@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zwariowana Lista - Porównaj graczy</title>
-    <link rel="stylesheet" href="./assets/css/style.css?v=1.3.4">
+    <link rel="stylesheet" href="./assets/css/style.css?v=1.4.0">
 </head>
 <body class="compare-body">
     <header id="hejder">
@@ -43,10 +43,11 @@
         </section>
     </main>
 
-    <script src="./assets/js/shared.js?v=1.3.4"></script>
+    <script src="./assets/js/shared.js?v=1.4.0"></script>
     <script>
         const PLAYERS_URL = LIST_PAGE_CONTEXT.playersUrl;
         const LEVELS_URL = LIST_PAGE_CONTEXT.levelsUrl;
+        const PACKS_URL = "./lists/challenge/packs.json";
 
         const playerASelect = document.getElementById("player-a");
         const playerBSelect = document.getElementById("player-b");
@@ -310,7 +311,11 @@
             resultContainer.innerHTML = `
                 <div class="compare-player-score">
                     <span>${escapeHTML(playerA.name)}</span>
-                    <strong>${playerA.points.toLocaleString("pl-PL")} ZLP</strong>
+                    <strong>${playerA.points.toLocaleString("pl-PL")} ZLP
+                        ${LIST_PAGE_CONTEXT.isChallengeList && playerA.packPoints
+                            ? `<small>W tym paczki: ${playerA.packPoints.toLocaleString("pl-PL")} ZLP</small>`
+                            : ""}
+                    </strong>
                 </div>
                 <div class="compare-difference">
                     <span>${difference === 0 ? "Wynik" : "Brakuje"}</span>
@@ -318,8 +323,15 @@
                 </div>
                 <div class="compare-player-score">
                     <span>${escapeHTML(playerB.name)}</span>
-                    <strong>${playerB.points.toLocaleString("pl-PL")} ZLP</strong>
+                    <strong>${playerB.points.toLocaleString("pl-PL")} ZLP
+                        ${LIST_PAGE_CONTEXT.isChallengeList && playerB.packPoints
+                            ? `<small>W tym paczki: ${playerB.packPoints.toLocaleString("pl-PL")} ZLP</small>`
+                            : ""}
+                    </strong>
                 </div>
+                ${LIST_PAGE_CONTEXT.isChallengeList
+                    ? '<p class="compare-pack-note">Punkty paczek są doliczane automatycznie po ukończeniu wszystkich leveli w paczce. Propozycje nadrabiania pokazują punkty leveli, bez przyszłych bonusów paczkowych.</p>'
+                    : ""}
                 ${catchUpMarkup}
             `;
 
@@ -345,22 +357,39 @@
 
         async function loadComparison() {
             try {
-                const [playersResponse, levelsResponse] = await Promise.all([
+                const [playersResponse, levelsResponse, packsResponse] = await Promise.all([
                     fetch(PLAYERS_URL, { cache: "no-cache" }),
-                    fetch(LEVELS_URL, { cache: "no-cache" })
+                    fetch(LEVELS_URL, { cache: "no-cache" }),
+                    LIST_PAGE_CONTEXT.isChallengeList
+                        ? fetch(PACKS_URL, { cache: "no-cache" })
+                        : Promise.resolve(null)
                 ]);
 
-                if (!playersResponse.ok || !levelsResponse.ok) {
+                if (
+                    !playersResponse.ok ||
+                    !levelsResponse.ok
+                ) {
                     throw new Error("Nie udało się wczytać danych graczy lub demonów.");
                 }
 
-                const [playersData, levelsData] = await Promise.all([
+                if (LIST_PAGE_CONTEXT.isChallengeList && !packsResponse.ok) {
+                    throw new Error(`Nie można wczytać ${PACKS_URL}.`);
+                }
+
+                const [playersData, levelsData, packsData] = await Promise.all([
                     playersResponse.json(),
-                    levelsResponse.json()
+                    levelsResponse.json(),
+                    LIST_PAGE_CONTEXT.isChallengeList
+                        ? packsResponse.json()
+                        : Promise.resolve([])
                 ]);
 
-                if (!Array.isArray(playersData) || !Array.isArray(levelsData)) {
-                    throw new Error("Dane graczy lub demonów mają nieprawidłowy format.");
+                if (
+                    !Array.isArray(playersData) ||
+                    !Array.isArray(levelsData) ||
+                    !Array.isArray(packsData)
+                ) {
+                    throw new Error("Dane graczy, leveli lub paczek mają nieprawidłowy format.");
                 }
 
                 const demonPool = levelsData
@@ -405,10 +434,20 @@
                         const rank = ranksByName.get(String(demonName).trim().toLowerCase());
                         return total + (rank ? getPoints(rank) : 0);
                     }, 0);
+                    const packs = LIST_PAGE_CONTEXT.isChallengeList
+                        ? getPlayerPackStatuses(player, packsData, levelsData)
+                            .filter(pack => pack.completed)
+                        : [];
+                    const packPoints = packs.reduce(
+                        (total, pack) => total + pack.points,
+                        0
+                    );
 
                     return {
                         name: String(player.Player || "Nieznany gracz"),
-                        points,
+                        points: points + packPoints,
+                        packPoints,
+                        packs,
                         demons
                     };
                 }).sort((a, b) =>
