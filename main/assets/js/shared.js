@@ -149,7 +149,7 @@ if (LIST_PAGE_CONTEXT.isChallengeList) {
 }
 
 function getPoints(rank) {
-    const maxPoints = 350;
+    const maxPoints = 500;
     const top50Points = 50;
     const minPoints = 1;
     const curveEndRank = 20;
