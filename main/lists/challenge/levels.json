@@ -48,6 +48,12 @@
         "tag":["Wave"]
     },
     {
+        "name":"Ether",
+        "id":"151820878",
+        "AddedAt":"2026-11-04",
+        "tag":["Overall"]
+    },
+    {
         "name":"santa",
         "id":"150505899",
         "tag":["Wave"]
@@ -73,12 +79,6 @@
         "name":"Gooslaw Challenge",
         "id":"145484484",
         "tag":["Wave"]
-    },
-    {
-        "name":"Ether",
-        "id":"151820878",
-        "AddedAt":"2026-11-04",
-        "tag":["Overall"]
     },
     {
         "name":"Mangetsuu",
