@@ -32,5 +32,13 @@
       { "name": "In the Dark", "id": "126372991" },
       { "name": "CORSO", "id": "136957633" }
     ]
+  },
+  {
+    "name": "Kubix Saws Pack",
+    "levels": [
+      { "name": "ElectroShock", "id": "152152729"},
+      { "name": "Fun Saws", "id": "144620974" },
+      { "name": "Ether", "id": "151820878" }
+    ]
   }
 ]

@@ -9,11 +9,45 @@ const LIST_NAME = LIST_CONFIG.listName || "ZLL";
 const THUMBNAIL_URL =
     "https://raw.githubusercontent.com/All-Rated-Extreme-Demon-List/Thumbnails/main/levels/cards";
 
+const ZCL_DIFFICULTIES = [
+    { minRank: 1, maxRank: 1, name: "Extreme Demon" },
+    { minRank: 2, maxRank: 5, name: "Insane Demon" },
+    { minRank: 6, maxRank: 15, name: "Hard Demon" },
+    { minRank: 16, maxRank: 30, name: "Medium Demon" },
+    { minRank: 31, maxRank: Infinity, name: "Easy Demon" }
+];
+
 let levels = [];
 let players = [];
 let aredlRanks = {};
 let legacyLevelNames = new Set();
 let activeLevelCount = 0;
+
+function createZclDifficultyBadge(rank, compact = false) {
+    if (LIST_NAME !== "ZCL") {
+        return null;
+    }
+
+    const difficulty = ZCL_DIFFICULTIES.find(
+        entry => rank >= entry.minRank && rank <= entry.maxRank
+    );
+
+    if (!difficulty) {
+        return null;
+    }
+
+    const badge = document.createElement("span");
+    badge.className = compact
+        ? "zcl-difficulty zcl-difficulty-compact"
+        : "zcl-difficulty";
+    badge.title = difficulty.name;
+
+    const label = document.createElement("span");
+    label.textContent = difficulty.name;
+
+    badge.appendChild(label);
+    return badge;
+}
 
 function getChallengeCreditNames(levelName, field) {
     const levelKey = String(levelName).trim().toLowerCase();
@@ -269,6 +303,11 @@ function generateDemonCards() {
         }
         rankHeader.append(rankElement, levelDetails);
 
+        const difficultyBadge = createZclDifficultyBadge(rank);
+        if (difficultyBadge) {
+            rankHeader.appendChild(difficultyBadge);
+        }
+
         const aredlRank =
             aredlRanks[String(level.id)];
 
@@ -464,6 +503,12 @@ function generateRanking() {
 
         rankText.textContent =
             `TOP ${rank}`;
+
+        const difficultyBadge = createZclDifficultyBadge(rank, true);
+        if (difficultyBadge) {
+            rankText.className = "ranking-item-rank";
+            rankText.appendChild(difficultyBadge);
+        }
 
 
         // =============================================
