@@ -219,7 +219,8 @@
     {
         "name":"ElectroShock",
         "id":"152152729",
-        "tag":["Overall"]
+        "tag":["Overall"],
+        "AddedAt":"2026-11-10"
     },
     {
         "name":"Pozdrawiamy Wojana",
