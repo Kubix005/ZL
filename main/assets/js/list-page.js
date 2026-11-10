@@ -248,24 +248,25 @@ function generateDemonCards() {
 
         rankElement.appendChild(rankLabel);
 
+        const levelDetails = document.createElement("span");
+        levelDetails.className = "top-level-details";
+        levelDetails.append(`ID: ${level.id}`);
         if (isNewLevel(level)) {
             const newBadge = document.createElement("span");
             newBadge.className = "top-new-badge";
             newBadge.textContent = "NEW";
-            rankElement.appendChild(newBadge);
+            levelDetails.append(newBadge);
         }
-
-        const levelDetails = document.createElement("span");
-        levelDetails.className = "top-level-details";
         const authorNames = Array.isArray(level.Autor)
             ? level.Autor.filter(author => typeof author === "string" && author.trim())
             : typeof level.Autor === "string" && level.Autor.trim()
                 ? [level.Autor.trim()]
                 : [];
-        levelDetails.textContent = [
-            `ID: ${level.id}`,
-            ...authorNames.map(author => `Autor: ${author}`)
-        ].join(" · ");
+        if (authorNames.length) {
+            levelDetails.append(
+                ` · ${authorNames.map(author => `Autor: ${author}`).join(" · ")}`
+            );
+        }
         rankHeader.append(rankElement, levelDetails);
 
         const aredlRank =

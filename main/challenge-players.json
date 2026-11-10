@@ -106,11 +106,16 @@
   },{
     "Player": "MyvartPL",
     "ChallengeDemons": [
-      "127099803","148683261","142173206","142085743","143917219","148585941",
-      "141619287","132518720","138386308"
+      "Fallen Wave","i fear these jumps","Hotline","Sunken","ill Take Care Of You","SpaceShip",
+      "peesquared","Checkers VS Chess","ArchAngel"
     ],
     "Verified": [
     ],
+    "Built": []
+  },{
+    "Player": "Kingryan0",
+    "ChallengeDemons": [],
+    "Verified": [],
     "Built": []
   }
 

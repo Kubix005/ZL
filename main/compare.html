@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zwariowana Lista - Porównaj graczy</title>
-    <link rel="stylesheet" href="./assets/css/style.css?v=1.4.2">
+    <link rel="stylesheet" href="./assets/css/style.css?v=1.4.6">
 </head>
 <body class="compare-body">
     <header id="hejder">
@@ -37,6 +37,23 @@
             </label>
         </div>
 
+        <div class="compare-view-switch" role="group" aria-label="Widok porównania">
+            <button
+                id="compare-points-button"
+                class="compare-view-button"
+                type="button"
+                aria-pressed="true"
+                disabled
+            >PORÓWNAJ PUNKTY</button>
+            <button
+                id="compare-shared-button"
+                class="compare-view-button"
+                type="button"
+                aria-pressed="false"
+                disabled
+            >CO RAZEM WBILI</button>
+        </div>
+
         <section id="compare-result" class="compare-result" aria-live="polite">
             <p class="compare-message">Wczytywanie punktów...</p>
         </section>
@@ -50,9 +67,12 @@
 
         const playerASelect = document.getElementById("player-a");
         const playerBSelect = document.getElementById("player-b");
+        const pointsButton = document.getElementById("compare-points-button");
+        const sharedButton = document.getElementById("compare-shared-button");
         const resultContainer = document.getElementById("compare-result");
         let ranksByName = new Map();
         let showAlternativePlans = false;
+        let comparisonView = "points";
 
         function addPlayerOptions(select, players) {
             select.replaceChildren();
@@ -198,13 +218,74 @@
                 : null;
         }
 
-        function renderComparison(players, demonPool) {
+        function getSharedCompletionLabel(count) {
+            if (LIST_PAGE_CONTEXT.isChallengeList) {
+                const lastTwoDigits = count % 100;
+                const lastDigit = count % 10;
+
+                if (count === 1) {
+                    return "wyzwanie";
+                }
+
+                return lastDigit >= 2 && lastDigit <= 4 &&
+                    (lastTwoDigits < 12 || lastTwoDigits > 14)
+                    ? "wyzwania"
+                    : "wyzwań";
+            }
+
+            if (count === 1) {
+                return "level";
+            }
+
+            return count >= 2 && count <= 4 ? "levele" : "leveli";
+        }
+
+        function renderComparison(players, demonPool, allLevelPool) {
             const playerA = players[Number(playerASelect.value)];
             const playerB = players[Number(playerBSelect.value)];
 
             if (!playerA || !playerB) {
                 resultContainer.innerHTML =
                     '<p class="compare-message">Nie udało się wybrać graczy do porównania.</p>';
+                return;
+            }
+
+            if (comparisonView === "shared") {
+                const playerACompletions = new Set(
+                    playerA.demons.map(name => name.toLowerCase())
+                );
+                const playerBCompletions = new Set(
+                    playerB.demons.map(name => name.toLowerCase())
+                );
+                const sharedLevels = allLevelPool.filter(level =>
+                    playerACompletions.has(level.name.toLowerCase()) &&
+                    playerBCompletions.has(level.name.toLowerCase())
+                );
+
+                resultContainer.innerHTML = sharedLevels.length
+                    ? `
+                        <div class="compare-shared-heading">
+                            <h2>Wspólne ukończenia</h2>
+                            <strong>${sharedLevels.length} ${getSharedCompletionLabel(sharedLevels.length)}</strong>
+                        </div>
+                        <ol class="compare-shared-list">
+                            ${sharedLevels.map(level => `
+                                <li>
+                                    <span class="compare-shared-rank">#${level.rank}</span>
+                                    <span>${escapeHTML(level.name)}</span>
+                                </li>
+                            `).join("")}
+                        </ol>
+                    `
+                    : `
+                        <div class="compare-shared-heading">
+                            <h2>Wspólne ukończenia</h2>
+                        </div>
+                        <p class="compare-message">
+                            ${escapeHTML(playerA.name)} i ${escapeHTML(playerB.name)}
+                            nie mają wspólnych ukończeń na tej liście.
+                        </p>
+                    `;
                 return;
             }
 
@@ -307,7 +388,7 @@
             if (toggleButton) {
                 toggleButton.addEventListener("click", () => {
                     showAlternativePlans = !showAlternativePlans;
-                    renderComparison(players, demonPool);
+                    renderComparison(players, demonPool, allLevelPool);
                 });
             }
         }
@@ -360,6 +441,10 @@
 
                 const allActiveLevels = levelsData.filter(level => !isLegacyLevel(level));
                 const activeLevelCount = allActiveLevels.length;
+                const allLevelPool = allActiveLevels.map((level, index) => ({
+                    name: String(level.name).trim(),
+                    rank: index + 1
+                }));
                 const demonPool = allActiveLevels
                     .slice(0, 150)
                     .map((level, index) => ({
@@ -372,18 +457,26 @@
                 const namesByIdentifier = new Map();
                 ranksByName = new Map();
 
+                allActiveLevels.forEach(level => {
+                    const name = String(level.name).trim();
+                    const nameKey = name.toLowerCase();
+                    namesByIdentifier.set(nameKey, name);
+
+                    if (level.id != null) {
+                        const idKey = String(level.id).trim().toLowerCase();
+
+                        if (!namesByIdentifier.has(idKey)) {
+                            namesByIdentifier.set(idKey, name);
+                        }
+                    }
+                });
+
                 demonPool.forEach(demon => {
                     const nameKey = demon.name.toLowerCase();
                     ranksByName.set(nameKey, demon.rank);
-                    namesByIdentifier.set(nameKey, demon.name);
 
-                    if (demon.id) {
-                        const idKey = demon.id.toLowerCase();
-
-                        if (!ranksByName.has(idKey)) {
-                            ranksByName.set(idKey, demon.rank);
-                            namesByIdentifier.set(idKey, demon.name);
-                        }
+                    if (demon.id && !ranksByName.has(demon.id.toLowerCase())) {
+                        ranksByName.set(demon.id.toLowerCase(), demon.rank);
                     }
                 });
 
@@ -429,14 +522,34 @@
                 addPlayerOptions(playerASelect, players);
                 addPlayerOptions(playerBSelect, players);
                 playerBSelect.value = "1";
+                pointsButton.disabled = false;
+                sharedButton.disabled = false;
 
-                playerASelect.addEventListener("change", () => renderComparison(players, demonPool));
-                playerBSelect.addEventListener("change", () => renderComparison(players, demonPool));
-                renderComparison(players, demonPool);
+                playerASelect.addEventListener("change", () =>
+                    renderComparison(players, demonPool, allLevelPool)
+                );
+                playerBSelect.addEventListener("change", () =>
+                    renderComparison(players, demonPool, allLevelPool)
+                );
+                pointsButton.addEventListener("click", () => {
+                    comparisonView = "points";
+                    pointsButton.setAttribute("aria-pressed", "true");
+                    sharedButton.setAttribute("aria-pressed", "false");
+                    renderComparison(players, demonPool, allLevelPool);
+                });
+                sharedButton.addEventListener("click", () => {
+                    comparisonView = "shared";
+                    pointsButton.setAttribute("aria-pressed", "false");
+                    sharedButton.setAttribute("aria-pressed", "true");
+                    renderComparison(players, demonPool, allLevelPool);
+                });
+                renderComparison(players, demonPool, allLevelPool);
             } catch (error) {
                 console.error("Błąd porównywania graczy:", error);
                 playerASelect.disabled = true;
                 playerBSelect.disabled = true;
+                pointsButton.disabled = true;
+                sharedButton.disabled = true;
                 resultContainer.innerHTML = `
                     <p class="compare-message">
                         Nie udało się wczytać porównania.

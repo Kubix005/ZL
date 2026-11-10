@@ -23,7 +23,7 @@
             równe średniej punktów za levele w tej paczce. Ukończone paczki wykrywamy
             automatycznie na podstawie zapisanych przejść ZCL.
         </p>
-        <section id="packs-list" class="packs-list" aria-live="polite">
+        <section id="packs-list" class="packs-layout" aria-live="polite">
             <p class="packs-message">Wczytywanie paczek...</p>
         </section>
     </main>
@@ -78,7 +78,22 @@
                     packs: getPlayerPackStatuses(player, packs, levels)
                 }));
 
-                container.innerHTML = packDetails.map(pack => {
+                const packsWithCompleters = [...packDetails]
+                    .sort((a, b) => b.points - a.points)
+                    .map(pack => {
+                        const completers = playerStatuses
+                            .filter(player =>
+                                player.name &&
+                                player.packs.some(status =>
+                                    status.name === pack.name && status.completed
+                                )
+                            )
+                            .map(player => player.name);
+
+                        return { ...pack, completers };
+                    });
+
+                function renderPackDetails(pack) {
                     let gridSide = Math.floor(Math.sqrt(pack.levels.length));
                     if (pack.levels.length > 1 && pack.levels.length < 4) {
                         gridSide = 2;
@@ -103,20 +118,12 @@
                         .slice(mainGridSize)
                         .map(renderPackLevel)
                         .join("");
-                    const completers = playerStatuses
-                        .filter(player =>
-                            player.name &&
-                            player.packs.some(status =>
-                                status.name === pack.name && status.completed
-                            )
-                        )
-                        .map(player => player.name);
-                    const completersMarkup = completers.length
-                        ? completers.map(escapeHTML).join(", ")
+                    const completersMarkup = pack.completers.length
+                        ? pack.completers.map(escapeHTML).join(", ")
                         : "Jeszcze nikt nie ukończył tej paczki.";
 
                     return `
-                        <article class="pack-card${gridSide >= 5 ? " pack-card-wide" : ""}">
+                        <article class="pack-card">
                             <header class="pack-card-header">
                                 <h2>${escapeHTML(pack.name)}</h2>
                             </header>
@@ -139,7 +146,49 @@
                             </p>
                         </article>
                     `;
-                }).join("");
+                }
+
+                container.innerHTML = `
+                    <aside class="packs-menu" aria-label="Lista paczek">
+                        <h2 class="packs-menu-title">Wybierz paczkę</h2>
+                        <div class="packs-menu-list" role="list">
+                            ${packsWithCompleters.map((pack, index) => `
+                                <button
+                                    class="pack-menu-row"
+                                    type="button"
+                                    role="listitem"
+                                    data-pack-index="${index}"
+                                    aria-pressed="${index === 0}"
+                                >
+                                    <span class="pack-menu-position">#${index + 1}</span>
+                                    <span class="pack-menu-info">
+                                        <strong>${escapeHTML(pack.name)}</strong>
+                                        <small>${pack.levels.length} ${pack.levels.length === 1 ? "level" : "levele"}</small>
+                                    </span>
+                                    <span class="pack-menu-points">+${pack.points.toLocaleString("pl-PL")} <small>ZLP</small></span>
+                                </button>
+                            `).join("")}
+                        </div>
+                    </aside>
+                    <div class="packs-details" id="packs-details">
+                        ${renderPackDetails(packsWithCompleters[0])}
+                    </div>
+                `;
+
+                container.querySelectorAll(".pack-menu-row").forEach(button => {
+                    button.addEventListener("click", () => {
+                        const selectedPack = packsWithCompleters[Number(button.dataset.packIndex)];
+                        if (!selectedPack) {
+                            return;
+                        }
+
+                        container.querySelectorAll(".pack-menu-row").forEach(row => {
+                            row.setAttribute("aria-pressed", String(row === button));
+                        });
+                        container.querySelector("#packs-details").innerHTML =
+                            renderPackDetails(selectedPack);
+                    });
+                });
             } catch (error) {
                 console.error("Nie udało się wczytać paczek ZCL:", error);
                 container.innerHTML = `

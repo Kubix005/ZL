@@ -49,6 +49,7 @@ Paczki ZCL definiuje `lists/challenge/packs.json`. Każda paczka ma nazwę i lis
 ```
 
 Gracz automatycznie zalicza paczkę po ukończeniu wszystkich jej leveli zapisanych w `ChallengeDemons` lub `Verified`; `Built` się nie liczy. Za paczkę przyznawany jest dodatkowy bonus równy średniej punktów jej leveli, zaokrąglonej do pełnego ZLP.
+Na stronie „Paczki ZCL” wybierz paczkę z menu po lewej, aby zobaczyć jej levele, bonus i listę graczy, którzy ją ukończyli.
 
 Podstrony rankingu, ostatnich ukończeń, zwycięzców i porównania wybierają odpowiedni plik graczy i zestaw ukończeń. Linki otwierane z ZCL przekazują `?list=zcl`, dzięki czemu korzystają z `lists/challenge/levels.json` i `challenge-players.json`; bez tego parametru wyświetlane są dane ZLL z `lists/zll/levels.json` i `players.json`.
 

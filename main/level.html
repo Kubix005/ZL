@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zwariowana Lista - Level</title>
-    <link rel="stylesheet" href="./assets/css/style.css?v=1.4.3">
+    <link rel="stylesheet" href="./assets/css/style.css?v=1.4.8">
 </head>
 <body>
     <header id="hejder">
@@ -60,6 +60,31 @@
                     : [String(value).trim()].filter(Boolean);
         }
 
+        function hasLevelCredit(player, field, levelIdentifiers) {
+            return Array.isArray(player[field]) &&
+                player[field].some(value =>
+                    levelIdentifiers.has(String(value).trim().toLowerCase())
+                );
+        }
+
+        function getPlayerNames(players) {
+            return [...new Set(
+                players
+                    .map(player => String(player.Player ?? "").trim())
+                    .filter(Boolean)
+            )].sort((a, b) => a.localeCompare(b, "pl"));
+        }
+
+        function getLeaderboardPlayerUrl(playerName) {
+            const params = new URLSearchParams({ player: playerName });
+
+            if (LIST_PAGE_CONTEXT.isChallengeList) {
+                params.set("list", "zcl");
+            }
+
+            return `leaderboard.html?${params.toString()}`;
+        }
+
         async function loadLevelPage() {
             const container = document.getElementById("level-page");
 
@@ -100,20 +125,32 @@
                 const levelName = String(level.name ?? "Nieznany level").trim();
                 const levelNameKey = levelName.toLowerCase();
                 const levelIdKey = String(level.id).trim().toLowerCase();
-                const rank = levelIndex + 1;
-                const victors = players
-                    .filter(player =>
-                        getPlayerCompletions(player).some(completion => {
-                            const key = String(completion).trim().toLowerCase();
-                            return key === levelNameKey || key === levelIdKey;
-                        })
+                const levelIdentifiers = new Set([levelNameKey, levelIdKey]);
+                const isChallengeList = LIST_PAGE_CONTEXT.isChallengeList;
+                const verifiedPlayers = isChallengeList
+                    ? players.filter(player =>
+                        hasLevelCredit(player, "Verified", levelIdentifiers)
                     )
-                    .map(player => String(player.Player ?? "").trim())
-                    .filter(Boolean)
-                    .sort((a, b) => a.localeCompare(b, "pl"));
+                    : [];
+                const verifiedPlayerNames = new Set(
+                    verifiedPlayers
+                        .map(player => String(player.Player ?? "").trim().toLowerCase())
+                        .filter(Boolean)
+                );
+                const verifier = getPlayerNames(verifiedPlayers)[0];
+                const rank = levelIndex + 1;
+                const victors = getPlayerNames(players.filter(player =>
+                    hasLevelCredit(
+                        player,
+                        LIST_PAGE_CONTEXT.completionField,
+                        levelIdentifiers
+                    ) &&
+                    !verifiedPlayerNames.has(
+                        String(player.Player ?? "").trim().toLowerCase()
+                    )
+                ));
                 const tags = getLevelTags(level);
                 const authors = getLevelAuthor(level);
-                const isChallengeList = LIST_PAGE_CONTEXT.isChallengeList;
 
                 document.title = `Zwariowana Lista - ${levelName}`;
                 container.innerHTML = `
@@ -136,6 +173,9 @@
                                 ${authors.length
                                     ? `<div><dt>${authors.length === 1 ? "Autor" : "Autorzy"}</dt><dd>${authors.map(escapeHTML).join(", ")}</dd></div>`
                                     : ""}
+                                ${verifier
+                                    ? `<div><dt>Zweryfikował</dt><dd><a class="level-player-link" href="${escapeHTML(getLeaderboardPlayerUrl(verifier))}">${escapeHTML(verifier)}</a></dd></div>`
+                                    : ""}
                                 ${level.AddedAt || level.addedAt
                                     ? `<div><dt>Dodano</dt><dd>${escapeHTML(level.AddedAt ?? level.addedAt)}</dd></div>`
                                     : ""}
@@ -152,7 +192,7 @@
                         <p class="level-victors-count">${victors.length} ${victors.length === 1 ? "gracz" : "graczy"}</p>
                         ${victors.length
                             ? `<ul class="level-victors-list">
-                                ${victors.map(name => `<li>${escapeHTML(name)}</li>`).join("")}
+                                ${victors.map(name => `<li><a class="level-player-link" href="${escapeHTML(getLeaderboardPlayerUrl(name))}">${escapeHTML(name)}</a></li>`).join("")}
                                </ul>`
                             : `<p class="level-page-message">Brak zapisanych zwycięzców tego levela.</p>`}
                     </section>
