@@ -81,6 +81,12 @@
         "tag":["Wave"]
     },
     {
+        "name":"Jabłecznik",
+        "id":"152210372",
+        "AddedAt":"2026-11-11",
+        "tag":["Wave","high CPS"]
+    },
+    {
         "name":"Mangetsuu",
         "id":"148004599",
         "tag":["Wave"]
@@ -94,6 +100,12 @@
         "name":"Nooboek challange buf",
         "id":"134832928",
         "AddedAt":"2026-10-30",
+        "tag":["Wave"]
+    },
+    {
+        "name":"Wave Challenge 4",
+        "id":"152209530",
+        "AddedAt":"2026-11-11",
         "tag":["Wave"]
     },
     {

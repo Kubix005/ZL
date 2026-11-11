@@ -126,14 +126,18 @@
     "Checkers VS Chess","ill Take Care Of You","ArchAngel","Wave Challenge 9","Sunken","Hotline","Fun Saws",
     "SpaceShip","Kicek jest w ciazy","50 mim challenge","peesquared","Bodek Spam Trials","CORSO"
   ],
-    "Verified": [
+    "Verified": ["Wave Challenge 4"
     ],
-    "Built": []
+    "Built": ["Wave Challenge 4"]
   },{
     "Player": "Ciastek",
     "ChallengeDemons": ["Mangetsuu","santa","Mangetsuu 2","Armia Szczupakuw"],
     "Verified": [],
     "Built": []
+  },{
+    "Player": "NieznanyPingwin",
+    "ChallengeDemons": [],
+    "Verified": ["Jabłecznik"],
+    "Built": ["Jabłecznik"]
   }
-
 ]
