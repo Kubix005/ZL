@@ -1806,14 +1806,38 @@ body::before {
     gap: 20px;
 }
 
-.compare-player {
+.compare-team {
     display: grid;
-    gap: 8px;
-    font-weight: bold;
+    align-content: start;
+    gap: 12px;
+    min-width: 0;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.24);
+    border: 1px solid rgba(95, 175, 245, 0.24);
+    border-radius: 12px;
 }
 
-.compare-player select {
+.compare-team h2 {
+    margin: 0;
+    color: #8fcaff;
+    font-size: 19px;
+}
+
+.compare-team-players {
+    display: grid;
+    gap: 8px;
+}
+
+.compare-team-player {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.compare-team-player select {
     width: 100%;
+    min-width: 0;
     min-height: 48px;
     padding: 10px 12px;
     color: white;
@@ -1824,14 +1848,51 @@ body::before {
     font: inherit;
 }
 
-.compare-player select option {
+.compare-team-player select option {
     color: white;
     background: #152b42;
 }
 
-.compare-player select:focus-visible {
+.compare-team-player select:focus-visible,
+.compare-add-player:focus-visible,
+.compare-remove-player:focus-visible {
     outline: 2px solid #1e88e5;
     outline-offset: 2px;
+}
+
+.compare-add-player,
+.compare-remove-player {
+    min-height: 40px;
+    padding: 8px 12px;
+    color: #bbdefb;
+    background: rgba(40, 125, 205, 0.13);
+    border: 1px solid rgba(95, 175, 245, 0.35);
+    border-radius: 7px;
+    font: inherit;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.compare-add-player {
+    justify-self: start;
+}
+
+.compare-remove-player {
+    flex: 0 0 auto;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 13px;
+}
+
+.compare-add-player:hover,
+.compare-remove-player:hover {
+    background: rgba(60, 165, 245, 0.24);
+    border-color: rgba(95, 175, 245, 0.65);
+}
+
+.compare-add-player:disabled,
+.compare-remove-player:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
 }
 
 .compare-view-switch {
@@ -2290,16 +2351,16 @@ body.compare-body .page-links .leaderboard-button:focus-visible {
     outline-color: #9bd0ff;
 }
 
-body.compare-body .compare-player select {
+body.compare-body .compare-team-player select {
     background: linear-gradient(145deg, #142a42, #0a1727);
     border-color: rgba(115, 180, 245, 0.6);
 }
 
-body.compare-body .compare-player select option {
+body.compare-body .compare-team-player select option {
     background: #10233a;
 }
 
-body.compare-body .compare-player select:focus-visible {
+body.compare-body .compare-team-player select:focus-visible {
     outline-color: #78baff;
 }
 

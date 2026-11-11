@@ -22,19 +22,21 @@
         <h1 class="compare-title">PORÓWNAJ GRACZY</h1>
 
         <div class="compare-controls">
-            <label class="compare-player">
-                <span>Gracz A</span>
-                <select id="player-a" disabled>
-                    <option>Wczytywanie graczy...</option>
-                </select>
-            </label>
+            <section class="compare-team" aria-labelledby="team-a-heading">
+                <h2 id="team-a-heading">Zespół A</h2>
+                <div id="team-a-players" class="compare-team-players"></div>
+                <button id="team-a-add" class="compare-add-player" type="button" disabled>
+                    + Dodaj gracza
+                </button>
+            </section>
             <span class="compare-versus" aria-hidden="true">VS</span>
-            <label class="compare-player">
-                <span>Gracz B</span>
-                <select id="player-b" disabled>
-                    <option>Wczytywanie graczy...</option>
-                </select>
-            </label>
+            <section class="compare-team" aria-labelledby="team-b-heading">
+                <h2 id="team-b-heading">Zespół B</h2>
+                <div id="team-b-players" class="compare-team-players"></div>
+                <button id="team-b-add" class="compare-add-player" type="button" disabled>
+                    + Dodaj gracza
+                </button>
+            </section>
         </div>
 
         <div class="compare-view-switch" role="group" aria-label="Widok porównania">
@@ -65,27 +67,108 @@
         const LEVELS_URL = LIST_PAGE_CONTEXT.levelsUrl;
         const PACKS_URL = "./lists/challenge/packs.json";
 
-        const playerASelect = document.getElementById("player-a");
-        const playerBSelect = document.getElementById("player-b");
+        const teamPlayerContainers = {
+            a: document.getElementById("team-a-players"),
+            b: document.getElementById("team-b-players")
+        };
+        const addPlayerButtons = {
+            a: document.getElementById("team-a-add"),
+            b: document.getElementById("team-b-add")
+        };
         const pointsButton = document.getElementById("compare-points-button");
         const sharedButton = document.getElementById("compare-shared-button");
         const resultContainer = document.getElementById("compare-result");
         let ranksByName = new Map();
         let showAlternativePlans = false;
         let comparisonView = "points";
+        const teamPlayerIds = { a: [], b: [] };
 
-        function addPlayerOptions(select, players) {
-            select.replaceChildren();
+        function renderTeamControls(players, demonPool, allLevelPool) {
+            const selectedIds = new Set([
+                ...teamPlayerIds.a,
+                ...teamPlayerIds.b
+            ]);
 
-            players.forEach((player, index) => {
-                const option = document.createElement("option");
-                option.value = String(index);
-                option.textContent =
-                    `${player.name} — ${player.points.toLocaleString("pl-PL")} ZLP`;
-                select.appendChild(option);
+            ["a", "b"].forEach(side => {
+                const container = teamPlayerContainers[side];
+                container.replaceChildren();
+
+                teamPlayerIds[side].forEach((playerId, rowIndex) => {
+                    const row = document.createElement("div");
+                    row.className = "compare-team-player";
+
+                    const select = document.createElement("select");
+                    select.setAttribute(
+                        "aria-label",
+                        `Gracz ${side.toUpperCase()} ${rowIndex + 1}`
+                    );
+
+                    players.forEach((player, index) => {
+                        if (selectedIds.has(index) && index !== playerId) {
+                            return;
+                        }
+
+                        const option = document.createElement("option");
+                        option.value = String(index);
+                        option.textContent =
+                            `${player.name} — ${player.points.toLocaleString("pl-PL")} ZLP`;
+                        option.selected = index === playerId;
+                        select.appendChild(option);
+                    });
+
+                    select.addEventListener("change", () => {
+                        teamPlayerIds[side][rowIndex] = Number(select.value);
+                        renderTeamControls(players, demonPool, allLevelPool);
+                        renderComparison(players, demonPool, allLevelPool);
+                    });
+
+                    const removeButton = document.createElement("button");
+                    removeButton.className = "compare-remove-player";
+                    removeButton.type = "button";
+                    removeButton.textContent = "Usuń";
+                    removeButton.setAttribute(
+                        "aria-label",
+                        `Usuń gracza ${players[playerId].name} z zespołu ${side.toUpperCase()}`
+                    );
+                    removeButton.disabled = teamPlayerIds[side].length === 1;
+                    removeButton.addEventListener("click", () => {
+                        teamPlayerIds[side].splice(rowIndex, 1);
+                        renderTeamControls(players, demonPool, allLevelPool);
+                        renderComparison(players, demonPool, allLevelPool);
+                    });
+
+                    row.append(select, removeButton);
+                    container.appendChild(row);
+                });
+
+                const hasAvailablePlayers = players.some((player, index) =>
+                    !selectedIds.has(index)
+                );
+                addPlayerButtons[side].disabled = !hasAvailablePlayers;
             });
 
-            select.disabled = players.length === 0;
+            const canCompare =
+                teamPlayerIds.a.length > 0 && teamPlayerIds.b.length > 0;
+            pointsButton.disabled = !canCompare;
+            sharedButton.disabled = !canCompare;
+        }
+
+        function addPlayerToTeam(side, players, demonPool, allLevelPool) {
+            const selectedIds = new Set([
+                ...teamPlayerIds.a,
+                ...teamPlayerIds.b
+            ]);
+            const availablePlayerId = players.findIndex(
+                (player, index) => !selectedIds.has(index)
+            );
+
+            if (availablePlayerId === -1) {
+                return;
+            }
+
+            teamPlayerIds[side].push(availablePlayerId);
+            renderTeamControls(players, demonPool, allLevelPool);
+            renderComparison(players, demonPool, allLevelPool);
         }
 
         function getLevelTags(level) {
@@ -240,26 +323,71 @@
             return count >= 2 && count <= 4 ? "levele" : "leveli";
         }
 
-        function renderComparison(players, demonPool, allLevelPool) {
-            const playerA = players[Number(playerASelect.value)];
-            const playerB = players[Number(playerBSelect.value)];
+        function createTeam(side, players) {
+            const members = teamPlayerIds[side]
+                .map(playerId => players[playerId])
+                .filter(Boolean);
 
-            if (!playerA || !playerB) {
-                resultContainer.innerHTML =
-                    '<p class="compare-message">Nie udało się wybrać graczy do porównania.</p>';
+            if (members.length === 0) {
+                return null;
+            }
+
+            return {
+                name: members.map(player => player.name).join(" + "),
+                points: members.reduce((total, player) => total + player.points, 0),
+                packPoints: members.reduce(
+                    (total, player) => total + player.packPoints,
+                    0
+                ),
+                demons: [...new Set(members.flatMap(player => player.demons))],
+                members
+            };
+        }
+
+        function getRecommendationLabel(count) {
+            if (LIST_PAGE_CONTEXT.isChallengeList) {
+                const lastTwoDigits = count % 100;
+                const lastDigit = count % 10;
+
+                if (count === 1) {
+                    return "wyzwanie";
+                }
+
+                return lastDigit >= 2 && lastDigit <= 4 &&
+                    (lastTwoDigits < 12 || lastTwoDigits > 14)
+                    ? "wyzwania"
+                    : "wyzwań";
+            }
+
+            if (count === 1) {
+                return "demon";
+            }
+
+            return count >= 2 && count <= 4 ? "demony" : "demonów";
+        }
+
+        function renderComparison(players, demonPool, allLevelPool) {
+            const teamA = createTeam("a", players);
+            const teamB = createTeam("b", players);
+
+            if (!teamA || !teamB) {
+                const hasEnoughPlayers = players.length >= 2;
+                resultContainer.innerHTML = `
+                    <p class="compare-message">
+                        ${hasEnoughPlayers
+                            ? "Dodaj co najmniej jednego gracza do każdego zespołu."
+                            : `Do porównania potrzeba co najmniej dwóch różnych graczy. Ta lista ma obecnie ${players.length}. Dodaj kolejnych w pliku ${LIST_PAGE_CONTEXT.isChallengeList ? "challenge-players.json" : "players.json"}.`}
+                    </p>
+                `;
                 return;
             }
 
             if (comparisonView === "shared") {
-                const playerACompletions = new Set(
-                    playerA.demons.map(name => name.toLowerCase())
-                );
-                const playerBCompletions = new Set(
-                    playerB.demons.map(name => name.toLowerCase())
-                );
+                const teamACompletions = new Set(teamA.demons.map(name => name.toLowerCase()));
+                const teamBCompletions = new Set(teamB.demons.map(name => name.toLowerCase()));
                 const sharedLevels = allLevelPool.filter(level =>
-                    playerACompletions.has(level.name.toLowerCase()) &&
-                    playerBCompletions.has(level.name.toLowerCase())
+                    teamACompletions.has(level.name.toLowerCase()) &&
+                    teamBCompletions.has(level.name.toLowerCase())
                 );
 
                 resultContainer.innerHTML = sharedLevels.length
@@ -282,31 +410,32 @@
                             <h2>Wspólne ukończenia</h2>
                         </div>
                         <p class="compare-message">
-                            ${escapeHTML(playerA.name)} i ${escapeHTML(playerB.name)}
-                            nie mają wspólnych ukończeń na tej liście.
+                            Zespół A (${escapeHTML(teamA.name)}) i zespół B
+                            (${escapeHTML(teamB.name)}) nie mają wspólnych ukończeń na tej liście.
                         </p>
                     `;
                 return;
             }
 
-            const difference = Math.abs(playerA.points - playerB.points);
+            const difference = Math.abs(teamA.points - teamB.points);
 
             let catchUpMarkup = "";
 
             if (difference > 0) {
-                const trailingPlayer =
-                    playerA.points < playerB.points ? playerA : playerB;
+                const trailingTeam = teamA.points < teamB.points ? teamA : teamB;
+                const leadingTeam = trailingTeam === teamA ? teamB : teamA;
+                const trailingSide = trailingTeam === teamA ? "A" : "B";
                 const catchUpPlan =
-                    getCatchUpPlan(trailingPlayer, difference, demonPool);
+                    getCatchUpPlan(trailingTeam, difference, demonPool);
                 const alternativePlan =
                     getAlternativePlan(
-                        trailingPlayer,
-                        trailingPlayer === playerA ? playerB : playerA,
+                        trailingTeam,
+                        leadingTeam,
                         difference,
                         demonPool
                     );
                 const hasCompletedTags =
-                    getPlayerTagCounts(trailingPlayer, demonPool).size > 0;
+                    getPlayerTagCounts(trailingTeam, demonPool).size > 0;
                 const displayedPlan = showAlternativePlans
                     ? alternativePlan
                     : catchUpPlan;
@@ -315,7 +444,7 @@
                     : [];
                 const planCards = displayedPlans.map(([count, plan]) => `
                     <article class="catch-up-option">
-                        <h3>${count} ${LIST_PAGE_CONTEXT.isChallengeList ? count === 1 ? "wyzwanie" : "wyzwania" : count === 1 ? "demon" : "demony"}</h3>
+                        <h3>${count} ${getRecommendationLabel(count)}</h3>
                         <strong class="catch-up-total">+${(showAlternativePlans ? plan.totalPoints : plan.netPoints).toLocaleString("pl-PL")} ZLP</strong>
                         <ol class="catch-up-list">
                             ${plan.demons.map(demon => `
@@ -334,7 +463,7 @@
                 catchUpMarkup = `
                     <div class="catch-up-plan">
                         <div class="catch-up-heading">
-                            <h2>Propozycje dla ${escapeHTML(trailingPlayer.name)}</h2>
+                            <h2>Propozycje dla zespołu ${trailingSide}</h2>
                             <button
                                 class="catch-up-toggle"
                                 type="button"
@@ -342,7 +471,7 @@
                             >${showAlternativePlans ? "Pokaż najszybsze nadrabianie" : "Pokaż alternatywną strategię"}</button>
                         </div>
                         ${hasCompletedTags
-                            ? '<p class="compare-tag-note">Propozycje uwzględniają tagi leveli ukończonych przez gracza.</p>'
+                            ? '<p class="compare-tag-note">Propozycje uwzględniają tagi leveli ukończonych przez zespół.</p>'
                             : ""}
                         <div class="catch-up-options">${recommendationContent}</div>
                     </div>
@@ -357,22 +486,24 @@
 
             resultContainer.innerHTML = `
                 <div class="compare-player-score">
-                    <span>${escapeHTML(playerA.name)}</span>
-                    <strong>${playerA.points.toLocaleString("pl-PL")} ZLP
-                        ${LIST_PAGE_CONTEXT.isChallengeList && playerA.packPoints
-                            ? `<small>W tym paczki: ${playerA.packPoints.toLocaleString("pl-PL")} ZLP</small>`
+                    <span>Zespół A: ${escapeHTML(teamA.name)}</span>
+                    <strong>${teamA.points.toLocaleString("pl-PL")} ZLP
+                        ${LIST_PAGE_CONTEXT.isChallengeList && teamA.packPoints
+                            ? `<small>W tym paczki: ${teamA.packPoints.toLocaleString("pl-PL")} ZLP</small>`
                             : ""}
                     </strong>
                 </div>
                 <div class="compare-difference">
-                    <span>${difference === 0 ? "Wynik" : "Brakuje"}</span>
+                    <span>${difference === 0
+                        ? "Wynik"
+                        : `Przewaga zespołu ${teamA.points > teamB.points ? "A" : "B"}`}</span>
                     <strong>${difference === 0 ? "0 ZLP" : `${difference.toLocaleString("pl-PL")} ZLP`}</strong>
                 </div>
                 <div class="compare-player-score">
-                    <span>${escapeHTML(playerB.name)}</span>
-                    <strong>${playerB.points.toLocaleString("pl-PL")} ZLP
-                        ${LIST_PAGE_CONTEXT.isChallengeList && playerB.packPoints
-                            ? `<small>W tym paczki: ${playerB.packPoints.toLocaleString("pl-PL")} ZLP</small>`
+                    <span>Zespół B: ${escapeHTML(teamB.name)}</span>
+                    <strong>${teamB.points.toLocaleString("pl-PL")} ZLP
+                        ${LIST_PAGE_CONTEXT.isChallengeList && teamB.packPoints
+                            ? `<small>W tym paczki: ${teamB.packPoints.toLocaleString("pl-PL")} ZLP</small>`
                             : ""}
                     </strong>
                 </div>
@@ -515,21 +646,18 @@
                     b.points - a.points || a.name.localeCompare(b.name, "pl")
                 );
 
-                if (players.length < 2) {
-                    throw new Error("Do porównania potrzeba co najmniej dwóch graczy.");
+                if (players.length === 0) {
+                    throw new Error("Nie znaleziono żadnych graczy na tej liście.");
                 }
 
-                addPlayerOptions(playerASelect, players);
-                addPlayerOptions(playerBSelect, players);
-                playerBSelect.value = "1";
-                pointsButton.disabled = false;
-                sharedButton.disabled = false;
-
-                playerASelect.addEventListener("change", () =>
-                    renderComparison(players, demonPool, allLevelPool)
+                teamPlayerIds.a = [0];
+                teamPlayerIds.b = players.length > 1 ? [1] : [];
+                renderTeamControls(players, demonPool, allLevelPool);
+                addPlayerButtons.a.addEventListener("click", () =>
+                    addPlayerToTeam("a", players, demonPool, allLevelPool)
                 );
-                playerBSelect.addEventListener("change", () =>
-                    renderComparison(players, demonPool, allLevelPool)
+                addPlayerButtons.b.addEventListener("click", () =>
+                    addPlayerToTeam("b", players, demonPool, allLevelPool)
                 );
                 pointsButton.addEventListener("click", () => {
                     comparisonView = "points";
@@ -546,8 +674,8 @@
                 renderComparison(players, demonPool, allLevelPool);
             } catch (error) {
                 console.error("Błąd porównywania graczy:", error);
-                playerASelect.disabled = true;
-                playerBSelect.disabled = true;
+                addPlayerButtons.a.disabled = true;
+                addPlayerButtons.b.disabled = true;
                 pointsButton.disabled = true;
                 sharedButton.disabled = true;
                 resultContainer.innerHTML = `
