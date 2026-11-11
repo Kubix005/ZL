@@ -38,7 +38,7 @@
   },
   {
     "Player": "Zwariowanyy",
-    "ChallengeDemons": ["santa","Mangetsuu","Larpiety"],
+    "ChallengeDemons": ["santa","Mangetsuu","Larpiety","Mangetsuu 2"],
     "Verified": [
       "Goostaw Challenge",
       "Wave Challenge X",
@@ -130,7 +130,7 @@
     "Built": []
   },{
     "Player": "Ciastek",
-    "ChallengeDemons": ["Mangetsuu","santa"],
+    "ChallengeDemons": ["Mangetsuu","santa","Mangetsuu 2"],
     "Verified": [],
     "Built": []
   }
