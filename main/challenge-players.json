@@ -87,7 +87,8 @@
     "Built": []
   },{
     "Player": "APieces",
-    "ChallengeDemons": ["Mangetsuu 2","Lacewing","i fear these jumps","Spaceship","Pozdrawiamy Wojana","Reviere"],
+    "ChallengeDemons": ["Mangetsuu 2","Lacewing","i fear these jumps","Spaceship","Pozdrawiamy Wojana","Reviere",
+  "Ether"],
     "Verified": ["Unnamed 108"
     ],
     "Built": ["Unnamed 108"]
@@ -126,6 +127,11 @@
   ],
     "Verified": [
     ],
+    "Built": []
+  },{
+    "Player": "Ciastek",
+    "ChallengeDemons": ["Mangetsuu"],
+    "Verified": [],
     "Built": []
   }
 
