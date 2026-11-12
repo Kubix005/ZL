@@ -222,6 +222,13 @@
         "id":"132518720",
         "tag":["Wave"]
     },
+
+    {
+        "name":"ElectroShock",
+        "id":"152152729",
+        "tag":["Overall"],
+        "AddedAt":"2026-11-10"
+    },
     {
         "name":"Zepsuta Kanapka",
         "id":"146186253",
@@ -231,12 +238,6 @@
         "name":"Koszatniczka Wave",
         "id":"131174727",
         "tag":["Wave"]
-    },
-    {
-        "name":"ElectroShock",
-        "id":"152152729",
-        "tag":["Overall"],
-        "AddedAt":"2026-11-10"
     },
     {
         "name":"Pozdrawiamy Wojana",
