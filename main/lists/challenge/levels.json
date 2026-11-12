@@ -57,7 +57,12 @@
         "AddedAt":"2026-10-30",
         "tag":["Ship"]
     },
-
+    {
+        "name":"Manifesto",
+        "id":"152221525",
+        "AddedAt":"2026-11-12",
+        "tag":["Overall"]
+        },
     {
         "name":"Ether",
         "id":"151820878",
@@ -185,6 +190,12 @@
         "name":"Hotline",
         "id":"142173206",
         "tag":["Wave"]
+    },
+    {
+        "name":"Mushroom Fluxxwave",
+        "id":"109260405",
+        "tag":["Wave"],
+        "AddedAt":"2026-11-12"
     },
     {
         "name":"Sunken",

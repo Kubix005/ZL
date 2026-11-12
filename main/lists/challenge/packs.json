@@ -1,5 +1,9 @@
 [
   {
+    "name": "Bottom 5",
+    "levelSelection": "bottom-5"
+  },
+  {
     "name": "Przeróbki Leveli",
     "levels": [
         { "name": "Larpiety", "id": "144018294" },

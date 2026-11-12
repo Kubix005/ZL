@@ -75,12 +75,29 @@ function getPlayerPackStatuses(player, packs, levels) {
 
         seenPackNames.add(packKey);
 
-        if (!Array.isArray(pack.levels) || pack.levels.length === 0) {
+        const hasBottomFiveSelection = pack.levelSelection === "bottom-5";
+
+        if (pack.levelSelection != null && !hasBottomFiveSelection) {
+            throw new Error(`Nieznany wybór leveli w paczce "${packName}".`);
+        }
+
+        if (hasBottomFiveSelection && pack.levels != null) {
+            throw new Error(`Paczka "${packName}" nie może łączyć wyboru dynamicznego z listą leveli.`);
+        }
+
+        const packMembers = hasBottomFiveSelection
+            ? activeLevels.slice(0, 150).slice(-5).map(level => ({
+                name: level.name,
+                id: level.id
+            }))
+            : pack.levels;
+
+        if (!Array.isArray(packMembers) || packMembers.length === 0) {
             throw new Error(`Paczka "${packName}" musi zawierać co najmniej jeden level.`);
         }
 
         const seenLevelIds = new Set();
-        const packLevels = pack.levels.map((member, memberIndex) => {
+        const packLevels = packMembers.map((member, memberIndex) => {
             const id = String(member?.id ?? "").trim();
             const name = typeof member?.name === "string" ? member.name.trim() : "";
             const idKey = id.toLowerCase();

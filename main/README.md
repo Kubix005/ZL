@@ -35,7 +35,7 @@ Opcjonalnie level ZCL może mieć tagi w polu `Tag`, zapisane jako tablica tekst
 
 `Verified` i `Built` są listami nazw wyzwań przypisanych danemu graczowi; jeśli gracz nie ma jeszcze takich wpisów, użyj pustej tablicy. Gdy nazwa wyzwania istnieje na ZCL, karta wyzwania pokazuje graczy z pól `Verified` („Zweryfikowane przez”) i `Built` („Zbudowane przez”). Wyzwanie z `Verified` liczy się jako completion w ZCL, tak samo jak wpis w `ChallengeDemons`; to samo wyzwanie zapisane w obu polach liczy się tylko raz. `Built` nie wpływa na ukończenia ani punkty.
 
-Paczki ZCL definiuje `lists/challenge/packs.json`. Każda paczka ma nazwę i listę leveli wskazanych nazwą oraz ID z `lists/challenge/levels.json`:
+Paczki ZCL definiuje `lists/challenge/packs.json`. Standardowa paczka ma nazwę i listę leveli wskazanych nazwą oraz ID z `lists/challenge/levels.json`:
 
 ```json
 [
@@ -47,6 +47,17 @@ Paczki ZCL definiuje `lists/challenge/packs.json`. Każda paczka ma nazwę i lis
   }
 ]
 ```
+
+Paczka może też automatycznie wybierać ostatnie pięć leveli z aktywnego TOP 150 ZCL:
+
+```json
+{
+  "name": "Bottom 5",
+  "levelSelection": "bottom-5"
+}
+```
+
+Levele tej paczki oraz ich rangi aktualizują się automatycznie zgodnie z kolejnością `levels.json`; levele legacy nie są uwzględniane.
 
 Gracz automatycznie zalicza paczkę po ukończeniu wszystkich jej leveli zapisanych w `ChallengeDemons` lub `Verified`; `Built` się nie liczy. Za paczkę przyznawany jest dodatkowy bonus równy średniej punktów jej leveli, zaokrąglonej do pełnego ZLP.
 Na stronie „Paczki ZCL” wybierz paczkę z menu po lewej, aby zobaczyć jej levele, bonus i listę graczy, którzy ją ukończyli.
