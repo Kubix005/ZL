@@ -116,9 +116,9 @@
     "Built": []
   },{
     "Player": "Kingryan0",
-    "ChallengeDemons": ["Fearless"],
-    "Verified": [],
-    "Built": []
+    "ChallengeDemons": [],
+    "Verified": ["Fearless"],
+    "Built": ["Fearless"]
   },{
     "Player": "JestemRysiek",
     "ChallengeDemons": ["Sevvend Spam Trials","Sevvend Club","Tu PPa","Reviere","Ufo Kicek","Mushroom Chal II",
