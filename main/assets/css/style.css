@@ -372,6 +372,18 @@ body::before {
     gap: 55px;
 }
 
+.extended-list-heading {
+    margin: 0;
+    padding: 15px;
+    color: white;
+    text-align: center;
+    font-family: Pusab, Arial Black, sans-serif;
+    font-size: 24px;
+    background: linear-gradient(135deg, #1e88e5, #1565c0);
+    border-radius: 10px;
+    text-shadow: 2px 2px 4px black;
+}
+
 
 /* =================================
    KARTA DEMONA

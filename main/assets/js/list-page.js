@@ -244,6 +244,13 @@ function generateDemonCards() {
 
         const rank = index + 1;
 
+        if (rank === 51) {
+            const heading = document.createElement("h2");
+            heading.className = "extended-list-heading";
+            heading.textContent = "Extended list";
+            container.appendChild(heading);
+        }
+
         const card =
             document.createElement("div");
 
@@ -482,6 +489,13 @@ function generateRanking() {
     levels.forEach((level, index) => {
 
         const rank = index + 1;
+
+        if (rank === 51) {
+            const heading = document.createElement("h2");
+            heading.className = "extended-list-heading";
+            heading.textContent = "Exteneded list";
+            rankingList.appendChild(heading);
+        }
 
 
         const item =
