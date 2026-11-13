@@ -12,7 +12,7 @@
 
     <title>Zwariowana Lista - Ranking graczy ZLL</title>
 
-    <link rel="stylesheet" href="./assets/css/style.css?v=1.4.8">
+    <link rel="stylesheet" href="./assets/css/style.css?v=1.5.0">
 
 </head>
 
@@ -52,6 +52,16 @@
 
         <div class="leaderboard-subtitle">
             Ranking na podstawie ukończonych leveli i paczek
+        </div>
+
+        <div class="leaderboard-ranks-info">
+            <p>Ranga zależy od sumy ZLP za ukończone levele lub wyzwania; w ZCL doliczany jest też bonus za ukończone paczki.</p>
+            <div class="leaderboard-ranks-legend">
+                <span class="leaderboard-player-title leaderboard-rank-elite">Elite: &gt;2000 ZLP</span>
+                <span class="leaderboard-player-title leaderboard-rank-champion">Champion: 1000–2000 ZLP</span>
+                <span class="leaderboard-player-title leaderboard-rank-competitive">Competitive Player: 500–999 ZLP</span>
+                <span class="leaderboard-player-title leaderboard-rank-casual">Casual: &lt;500 ZLP</span>
+            </div>
         </div>
 
         <div id="leaderboard-list">
@@ -703,9 +713,56 @@ async function loadLeaderboard() {
 
         container.innerHTML = "";
 
+        const rankDefinitions = [
+            { title: "Elite", key: "elite" },
+            { title: "Champion", key: "champion" },
+            { title: "Competitive Player", key: "competitive" },
+            { title: "Casual", key: "casual" }
+        ];
+        const rankSections = new Map();
+        const hasElitePlayers = leaderboard.some(player => player.points > 2000);
+        const hasExtendedPlayers = leaderboard.some(player => player.points <= 2000);
+
+        rankDefinitions.forEach(rank => {
+            const heading = document.createElement("h2");
+            heading.className = `extended-list-heading leaderboard-rank-heading leaderboard-rank-${rank.key}`;
+            heading.textContent = rank.title;
+            container.appendChild(heading);
+
+            const entries = document.createElement("div");
+            entries.className = "leaderboard-rank-entries";
+
+            const emptyState = document.createElement("div");
+            emptyState.className = "leaderboard-rank-empty";
+            emptyState.textContent = `Brak graczy z rangą ${rank.title}.`;
+            entries.appendChild(emptyState);
+
+            rankSections.set(rank.key, { entries, emptyState });
+            container.appendChild(entries);
+
+            if (
+                rank.key === "elite" &&
+                !LIST_PAGE_CONTEXT.isChallengeList &&
+                hasElitePlayers &&
+                hasExtendedPlayers
+            ) {
+                const extendedHeading = document.createElement("h2");
+                extendedHeading.className = "extended-list-heading";
+                extendedHeading.textContent = "Extended list";
+                container.appendChild(extendedHeading);
+            }
+        });
 
         leaderboard.forEach(
             (player, index) => {
+
+                const rank = player.points > 2000
+                    ? rankDefinitions[0]
+                    : player.points >= 1000
+                        ? rankDefinitions[1]
+                        : player.points >= 500
+                            ? rankDefinitions[2]
+                            : rankDefinitions[3];
 
                 const entry =
                     document.createElement("div");
@@ -742,6 +799,9 @@ async function loadLeaderboard() {
 
                         <span class="leaderboard-player-name">
                             ${escapeHTML(player.name)}
+                        </span>
+                        <span class="leaderboard-player-titles" aria-label="Tytuł gracza">
+                            <span class="leaderboard-player-title leaderboard-rank-${rank.key}">${escapeHTML(rank.title)}</span>
                         </span>
 
                         <span class="leaderboard-player-stats">
@@ -873,7 +933,10 @@ async function loadLeaderboard() {
                 });
 
                 entry.append(row, details);
-                container.appendChild(entry);
+                const rankSection = rankSections.get(rank.key);
+                rankSection.emptyState?.remove();
+                rankSection.emptyState = null;
+                rankSection.entries.appendChild(entry);
 
             }
         );

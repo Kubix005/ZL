@@ -64,6 +64,8 @@ Na stronie „Paczki ZCL” wybierz paczkę z menu po lewej, aby zobaczyć jej l
 
 Podstrony rankingu, ostatnich ukończeń, zwycięzców i porównania wybierają odpowiedni plik graczy i zestaw ukończeń. W porównaniu graczy można dodawać dowolną liczbę osób do każdego z dwóch zespołów; wynik zespołu sumuje punkty jego graczy, a wspólne ukończenia są liczone na podstawie leveli ukończonych przez co najmniej jednego członka każdego zespołu. Linki otwierane z ZCL przekazują `?list=zcl`, dzięki czemu korzystają z `lists/challenge/levels.json` i `challenge-players.json`; bez tego parametru wyświetlane są dane ZLL z `lists/zll/levels.json` i `players.json`.
 
+Na leaderboardzie gracze są grupowani według tytułów: Elite powyżej 2000 ZLP, Champion od 1000 ZLP, Competitive Player od 500 ZLP, a poniżej 500 ZLP Casual. Każdy tytuł ma osobną sekcję; jeśli nie ma graczy w danej randze, sekcja pokazuje stosowną informację. W ZLL sekcja Extended list zaczyna się za grupą Elite.
+
 Kliknięcie nazwy ukończonego levela w szczegółach gracza na leaderboardzie otwiera `level.html?id=ID`. Strona pokazuje metadane levela oraz graczy, którzy go ukończyli; w ZCL adres zawiera również `list=zcl`. Osobna zakładka „LEVELE” nie jest już dostępna.
 
 Linki do filmów z ukończeń zapisuj osobno dla każdej listy: ZCL w `links.json`, a ZLL w `lists/zll/levels-links.json`. Oba pliki używają tego samego formatu; każdy wpis łączy nazwę gracza, listę ID leveli z odpowiedniego `levels.json` pokazanych w filmie i adres tego filmu:
