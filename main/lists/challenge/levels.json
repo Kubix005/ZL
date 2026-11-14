@@ -40,12 +40,6 @@
         "AddedAt":"2026-11-04",
         "tag":["Robot"]
     },
-     {
-        "name":"Mangetsuu 2",
-        "id":"148008360",
-        "AddedAt":"2026-10-24",
-        "tag":["Cube"]
-    },
     {
         "name" :"Unnamed 108",
         "id":"151575320",
@@ -63,6 +57,12 @@
         "name":"Gooslaw Challenge",
         "id":"145484484",
         "tag":["Wave"]
+    },
+     {
+        "name":"Mangetsuu 2",
+        "id":"148008360",
+        "AddedAt":"2026-10-24",
+        "tag":["Cube"]
     },
     {
         "name":"MANIFESTO",
