@@ -47,5 +47,21 @@
       { "name": "Fun Saws", "id": "144620974" },
       { "name": "Ether", "id": "151820878" }
     ]
+  },
+  {
+    "name": "Ufo Pack",
+    "levels": [
+      { "name": "Rysiek Ufo Trials", "id": "152373739"},
+      { "name": "Ufo Kicek", "id": "136856535" },
+      { "name": "SpaceShip", "id": "148585941" }
+    ]
+  },
+  {
+    "name": "Trials Pack",
+    "levels": [
+      { "name": "Rysiek Ufo Trials", "id": "152373739"},
+      { "name": "Bodek Spam Trials", "id": "151209135" },
+      { "name": "Sevvend Spam Trials", "id": "143789593" }
+    ]
   }
 ]
