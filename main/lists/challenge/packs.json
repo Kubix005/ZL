@@ -20,10 +20,17 @@
     ]
   },
   {
-    "name": "Wave CrossOver",
+    "name": "Wave CrossOver - Part 2",
     "levels": [
       { "name": "Wave Challenge X", "id": "111701880" },
       { "name": "Wave Challenge 4", "id": "152209530" },
+      { "name": "MuuhrOXm luxwavveqq", "id": "152295898" }
+    ]
+  },
+  {
+    "name": "Wave CrossOver - Part 1",
+    "levels": [
+      { "name": "Mushroom Fluxxwave", "id": "109260405" },
       { "name": "Wave Challenge 9", "id": "108872274" },
       { "name": "Koszatniczka Wave", "id": "131174727" },
       { "name": "Fallen Wave", "id": "127099803" }
