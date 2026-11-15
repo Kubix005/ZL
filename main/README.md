@@ -90,7 +90,7 @@ Wspólne arkusze i skrypty są w `assets/css/` i `assets/js/`. Widoki list znajd
 
 ## Punktacja
 
-Punktacja opada płynnie według wzoru `round(1 + 499 * ((N - r) / (N - 1))^1.8)`, gdzie `r` to pozycja levela, a `N` to liczba aktywnych leveli plus 20. TOP 1 daje 500 ZLP, a 1 ZLP przypada od rangi `N`; punkty pomiędzy nimi maleją stopniowo, bez osobnych progów dla TOP 10 czy TOP 20. ZLL i Challenge korzystają z tej samej krzywej, liczonej dla liczby aktywnych leveli na danej liście.
+Podstawowa punktacja opada według wzoru `1 + 499 * ((N - r) / (N - 1))^8`, gdzie `r` to pozycja levela, a `N` to liczba aktywnych leveli plus 20. TOP 1 daje 500 ZLP. TOP 10 zachowuje tę podstawową punktację; od rangi 11 dolne levele otrzymują 25% różnicy między punktacją bazową a liniowym spadkiem od wartości TOP 10 do 1 ZLP na randze `N`. Dzięki temu dół listy daje więcej punktów bez zmiany rozdzielenia na samym szczycie. ZLL i Challenge korzystają z tej samej krzywej, liczonej dla liczby aktywnych leveli na danej liście.
 
 ## Legacy levele
 

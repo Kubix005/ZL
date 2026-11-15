@@ -170,13 +170,29 @@ function getPoints(rank, levelCount) {
     const maxPoints = 500;
     const minPoints = 1;
     const exponent = 8;
+    const boostAfterRank = 10;
+    const tailBoost = 0.25;
     const maxRank = levelCount + 20;
     const progress = Math.max(
         0,
         Math.min(1, (maxRank - rank) / (maxRank - 1))
     );
-    const points = minPoints +
+    let points = minPoints +
         (maxPoints - minPoints) * Math.pow(progress, exponent);
+
+    if (rank > boostAfterRank) {
+        const boostStartProgress = (maxRank - boostAfterRank) / (maxRank - 1);
+        const boostStartPoints = minPoints +
+            (maxPoints - minPoints) * Math.pow(boostStartProgress, exponent);
+        const tailProgress = Math.max(
+            0,
+            Math.min(1, (maxRank - rank) / (maxRank - boostAfterRank))
+        );
+        const linearTailPoints = minPoints +
+            (boostStartPoints - minPoints) * tailProgress;
+
+        points += (linearTailPoints - points) * tailBoost;
+    }
 
     return Math.round(points);
 }
