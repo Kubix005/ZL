@@ -70,6 +70,12 @@
         "id":"145484484",
         "tag":["Wave"]
     },
+    {
+        "name":"Ether",
+        "id":"151820878",
+        "AddedAt":"2026-11-04",
+        "tag":["Overall"]
+    },
      {
         "name":"Mangetsuu 2",
         "id":"148008360",
@@ -82,12 +88,7 @@
         "AddedAt":"2026-11-12",
         "tag":["Overall"]
         },
-    {
-        "name":"Ether",
-        "id":"151820878",
-        "AddedAt":"2026-11-04",
-        "tag":["Overall"]
-    },
+
     {
         "name":"Lacewing",
         "id":"148430500",
