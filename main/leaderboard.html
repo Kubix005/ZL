@@ -57,8 +57,8 @@
         <div class="leaderboard-ranks-info">
             <p>Ranga zależy od sumy ZLP za ukończone levele lub wyzwania; w ZCL doliczany jest też bonus za ukończone paczki.</p>
             <div class="leaderboard-ranks-legend">
-                <span class="leaderboard-player-title leaderboard-rank-elite">Elite: &gt;2000 ZLP</span>
-                <span class="leaderboard-player-title leaderboard-rank-champion">Champion: 1000–2000 ZLP</span>
+                <span class="leaderboard-player-title leaderboard-rank-elite">Elite: 3000+ ZLP</span>
+                <span class="leaderboard-player-title leaderboard-rank-champion">Champion: 1000–2999 ZLP</span>
                 <span class="leaderboard-player-title leaderboard-rank-competitive">Competitive Player: 500–999 ZLP</span>
                 <span class="leaderboard-player-title leaderboard-rank-casual">Casual: &lt;500 ZLP</span>
             </div>
@@ -720,8 +720,8 @@ async function loadLeaderboard() {
             { title: "Casual", key: "casual" }
         ];
         const rankSections = new Map();
-        const hasElitePlayers = leaderboard.some(player => player.points > 2000);
-        const hasExtendedPlayers = leaderboard.some(player => player.points <= 2000);
+        const hasElitePlayers = leaderboard.some(player => player.points >= 3000);
+        const hasExtendedPlayers = leaderboard.some(player => player.points < 3000);
 
         rankDefinitions.forEach(rank => {
             const heading = document.createElement("h2");
@@ -756,7 +756,7 @@ async function loadLeaderboard() {
         leaderboard.forEach(
             (player, index) => {
 
-                const rank = player.points > 2000
+                const rank = player.points >= 3000
                     ? rankDefinitions[0]
                     : player.points >= 1000
                         ? rankDefinitions[1]
