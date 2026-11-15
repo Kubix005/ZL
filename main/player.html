@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zwariowana Lista - Gracz</title>
+    <link rel="stylesheet" href="./assets/css/style.css?v=1.5.1">
+</head>
+<body>
+    <header id="hejder">
+        <a href="index.html" class="header-home">Zwariowana Lista</a>
+    </header>
+
+    <nav class="page-links" aria-label="Powiązane strony">
+        <a href="leaderboard.html" class="leaderboard-button">LEADERBOARD</a>
+    </nav>
+
+    <main id="player-page" class="level-page player-page" aria-live="polite">
+        <p class="level-page-message">Wczytywanie profilu gracza...</p>
+    </main>
+
+    <script src="./assets/js/shared.js?v=1.5.0"></script>
+    <script>
+        const PLAYER_NAME = new URLSearchParams(window.location.search)
+            .get("player")
+            ?.trim();
+        const PLAYERS_URL = LIST_PAGE_CONTEXT.playersUrl;
+        const LEVELS_URL = LIST_PAGE_CONTEXT.levelsUrl;
+        const PLAYERS_FILE = PLAYERS_URL.split("/").pop();
+        const PACKS_URL = "./lists/challenge/packs.json";
+        const MAX_RANKED_LEVELS = 150;
+
+        function escapeHTML(value) {
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function normalizeIdentifier(value) {
+            return String(value ?? "").trim().toLowerCase();
+        }
+
+        function getLevelIdentifiers(level) {
+            return [level?.name, level?.id]
+                .filter(value => value != null)
+                .map(normalizeIdentifier)
+                .filter(Boolean);
+        }
+
+        function getLevelTags(level) {
+            const value = level.Tag ?? level.tag;
+            const tags = Array.isArray(value)
+                ? value
+                : value == null
+                    ? []
+                    : [value];
+
+            return [...new Set(
+                tags
+                    .map(tag => String(tag ?? "").trim())
+                    .filter(Boolean)
+            )];
+        }
+
+        function getLevelAuthors(level) {
+            const value = level.Autor ?? level.author;
+            const authors = Array.isArray(value) ? value : value == null ? [] : [value];
+
+            return authors
+                .map(author => String(author ?? "").trim())
+                .filter(Boolean);
+        }
+
+        function getRankTitle(points) {
+            return points >= 3000
+                ? { title: "Elite", key: "elite" }
+                : points >= 1000
+                    ? { title: "Champion", key: "champion" }
+                    : points >= 500
+                        ? { title: "Competitive Player", key: "competitive" }
+                        : { title: "Casual", key: "casual" };
+        }
+
+        function getLevelUrl(levelId) {
+            const params = new URLSearchParams({ id: String(levelId) });
+
+            if (LIST_PAGE_CONTEXT.isChallengeList) {
+                params.set("list", "zcl");
+            }
+
+            return `./level.html?${params.toString()}`;
+        }
+
+        function buildLevelLookup(levels) {
+            const activeLevels = levels.filter(level => !isLegacyLevel(level));
+            const levelsByIdentifier = new Map();
+
+            activeLevels.forEach((level, index) => {
+                const entry = { level, rank: index + 1 };
+
+                getLevelIdentifiers(level).forEach(identifier => {
+                    if (!levelsByIdentifier.has(identifier)) {
+                        levelsByIdentifier.set(identifier, entry);
+                    }
+                });
+            });
+
+            const legacyIdentifiers = new Set(
+                levels
+                    .filter(isLegacyLevel)
+                    .flatMap(getLevelIdentifiers)
+            );
+
+            return {
+                activeLevels,
+                levelsByIdentifier,
+                legacyIdentifiers
+            };
+        }
+
+        function getCompletedLevels(player, levelLookup, activeLevelCount) {
+            return getPlayerCompletions(player)
+                .filter(completion =>
+                    !levelLookup.legacyIdentifiers.has(normalizeIdentifier(completion))
+                )
+                .map(completion => {
+                    const entry = levelLookup.levelsByIdentifier.get(
+                        normalizeIdentifier(completion)
+                    );
+                    const level = entry?.level ?? null;
+                    const rank = entry?.rank ?? null;
+
+                    return {
+                        name: level?.name ? String(level.name).trim() : String(completion).trim(),
+                        id: level?.id ?? null,
+                        level,
+                        rank,
+                        points: rank != null && rank <= MAX_RANKED_LEVELS
+                            ? getPoints(rank, activeLevelCount)
+                            : null
+                    };
+                })
+                .sort((a, b) =>
+                    (a.rank ?? Infinity) - (b.rank ?? Infinity) ||
+                    a.name.localeCompare(b.name, "pl")
+                );
+        }
+
+        function getPlayerScore(player, levelLookup, activeLevelCount, packs, levels) {
+            const rankedCompletions = getCompletedLevels(
+                player,
+                levelLookup,
+                activeLevelCount
+            ).filter(entry => entry.rank != null && entry.rank <= MAX_RANKED_LEVELS);
+            const completedPacks = LIST_PAGE_CONTEXT.isChallengeList
+                ? getPlayerPackStatuses(player, packs, levels).filter(pack => pack.completed)
+                : [];
+            const points = rankedCompletions.reduce(
+                (total, level) => total + level.points,
+                0
+            ) + completedPacks.reduce((total, pack) => total + pack.points, 0);
+
+            return {
+                points,
+                completed: rankedCompletions.length,
+                bestRank: rankedCompletions.length
+                    ? Math.min(...rankedCompletions.map(level => level.rank))
+                    : 999,
+                packs: completedPacks
+            };
+        }
+
+        function renderCompletedLevel(entry) {
+            const level = entry.level;
+            const rankText = entry.rank == null
+                ? "Brak na aktywnej liście"
+                : entry.rank <= MAX_RANKED_LEVELS
+                    ? `Miejsce: #${entry.rank}`
+                    : `Miejsce: #${entry.rank} (poza TOP ${MAX_RANKED_LEVELS})`;
+            const pointsText = entry.points == null
+                ? "Punkty: —"
+                : `Punkty: ${entry.points} ZLP`;
+            const addedAt = level?.AddedAt ?? level?.addedAt;
+            const addedText = addedAt
+                ? `Dodano: ${escapeHTML(addedAt)}`
+                : "Dodano: Położone na liście odrazu";
+            const levelName = escapeHTML(entry.name);
+            const nameMarkup = level?.id != null
+                ? `<a class="player-level-title" href="${escapeHTML(getLevelUrl(level.id))}">${levelName}</a>`
+                : `<strong class="player-level-title">${levelName}</strong>`;
+            const levelId = level?.id != null
+                ? `<span>ID: ${escapeHTML(level.id)}</span>`
+                : "";
+            const authors = level ? getLevelAuthors(level) : [];
+            const authorMarkup = authors.length
+                ? `<span>${authors.length === 1 ? "Autor" : "Autorzy"}: ${authors.map(escapeHTML).join(", ")}</span>`
+                : "";
+            const tags = level ? getLevelTags(level) : [];
+            const tagsMarkup = tags.length
+                ? `<span>Tagi: ${tags.map(escapeHTML).join(", ")}</span>`
+                : "";
+
+            return `
+                <li class="player-level-entry">
+                    ${nameMarkup}
+                    <div class="player-level-meta">
+                        <span>${rankText}</span>
+                        <span>${pointsText}</span>
+                        <span>${addedText}</span>
+                        ${levelId}
+                        ${authorMarkup}
+                        ${tagsMarkup}
+                    </div>
+                </li>
+            `;
+        }
+
+        async function loadPlayerPage() {
+            const container = document.getElementById("player-page");
+
+            try {
+                if (!PLAYER_NAME) {
+                    throw new Error("Brakuje nazwy gracza w adresie strony.");
+                }
+
+                const [playersResponse, levelsResponse, packsResponse] = await Promise.all([
+                    fetch(PLAYERS_URL, { cache: "no-cache" }),
+                    fetch(LEVELS_URL, { cache: "no-cache" }),
+                    LIST_PAGE_CONTEXT.isChallengeList
+                        ? fetch(PACKS_URL, { cache: "no-cache" })
+                        : Promise.resolve(null)
+                ]);
+
+                if (!playersResponse.ok || !levelsResponse.ok) {
+                    throw new Error(`Nie udało się wczytać graczy lub leveli (${PLAYERS_FILE}).`);
+                }
+
+                if (packsResponse && !packsResponse.ok) {
+                    throw new Error("Nie udało się wczytać packs.json.");
+                }
+
+                const [players, levels, packs] = await Promise.all([
+                    playersResponse.json(),
+                    levelsResponse.json(),
+                    packsResponse ? packsResponse.json() : Promise.resolve([])
+                ]);
+
+                if (!Array.isArray(players) || !Array.isArray(levels) || !Array.isArray(packs)) {
+                    throw new Error("Pliki graczy, leveli lub paczek mają nieprawidłowy format.");
+                }
+
+                const levelLookup = buildLevelLookup(levels);
+                const activeLevelCount = levelLookup.activeLevels.length;
+                const player = players.find(entry =>
+                    normalizeIdentifier(entry?.Player) === normalizeIdentifier(PLAYER_NAME)
+                );
+
+                if (!player) {
+                    throw new Error(`Nie znaleziono gracza "${PLAYER_NAME}".`);
+                }
+
+                const ranking = players
+                    .filter(entry => String(entry?.Player ?? "").trim())
+                    .map(entry => ({
+                        name: String(entry.Player).trim(),
+                        ...getPlayerScore(entry, levelLookup, activeLevelCount, packs, levels)
+                    }))
+                    .sort((a, b) =>
+                        b.points - a.points ||
+                        b.completed - a.completed ||
+                        a.bestRank - b.bestRank
+                    );
+                const playerName = String(player.Player).trim();
+                const playerRankingIndex = ranking.findIndex(entry =>
+                    normalizeIdentifier(entry.name) === normalizeIdentifier(playerName)
+                );
+
+                if (playerRankingIndex < 0) {
+                    throw new Error(`Nie udało się ustalić miejsca gracza "${playerName}" w rankingu.`);
+                }
+
+                const playerScore = ranking[playerRankingIndex];
+                const rank = playerRankingIndex + 1;
+                const rankTitle = getRankTitle(playerScore.points);
+                const completedLevels = getCompletedLevels(
+                    player,
+                    levelLookup,
+                    activeLevelCount
+                );
+                const hardestLevel = completedLevels.find(level =>
+                    level.rank != null && level.rank <= MAX_RANKED_LEVELS
+                );
+                const packBonus = playerScore.packs.reduce(
+                    (total, pack) => total + pack.points,
+                    0
+                );
+                const packDetails = LIST_PAGE_CONTEXT.isChallengeList && playerScore.packs.length
+                    ? `
+                        <div class="player-pack-details">
+                            <strong>Ukończone paczki · dodatkowe ${packBonus} ZLP</strong>
+                            <ul>
+                                ${playerScore.packs.map(pack => `
+                                    <li>${escapeHTML(pack.name)} <span>+${pack.points} ZLP</span></li>
+                                `).join("")}
+                            </ul>
+                        </div>
+                    `
+                    : "";
+                const hardestMarkup = hardestLevel
+                    ? `<a class="level-player-link" href="${escapeHTML(getLevelUrl(hardestLevel.id))}">${escapeHTML(hardestLevel.name)} (#${hardestLevel.rank})</a>`
+                    : "Brak ukończonych leveli z TOP 150";
+
+                document.title = `Zwariowana Lista - ${playerName}`;
+                container.innerHTML = `
+                    <aside class="level-details player-details">
+                        <div class="level-details-content">
+                            <h1>${escapeHTML(playerName)}</h1>
+                            <div class="leaderboard-player-titles" aria-label="Tytuł gracza">
+                                <span class="leaderboard-player-title leaderboard-rank-${rankTitle.key}">${rankTitle.title}</span>
+                            </div>
+                            <dl class="level-details-list player-details-list">
+                                <div><dt>Miejsce</dt><dd>#${rank}</dd></div>
+                                <div><dt>Punkty</dt><dd>${playerScore.points} ZLP</dd></div>
+                                <div><dt>Ukończone</dt><dd>${playerScore.completed} ${LIST_PAGE_CONTEXT.isChallengeList ? "wyzwań z TOP 150" : "leveli z TOP 150"}</dd></div>
+                                <div><dt>Najtrudniejszy</dt><dd>${hardestMarkup}</dd></div>
+                                ${LIST_PAGE_CONTEXT.isChallengeList
+                                    ? `<div><dt>Bonus paczek</dt><dd>+${packBonus} ZLP</dd></div>`
+                                    : ""}
+                            </dl>
+                            ${packDetails}
+                        </div>
+                    </aside>
+                    <section class="level-victors-panel player-levels-panel">
+                        <h2>Ukończone ${LIST_PAGE_CONTEXT.isChallengeList ? "wyzwania" : "levele"}</h2>
+                        <p class="level-victors-count">${completedLevels.length} zapisanych ukończeń</p>
+                        ${completedLevels.length
+                            ? `<ul class="level-victors-list player-level-list">
+                                ${completedLevels.map(renderCompletedLevel).join("")}
+                               </ul>`
+                            : `<p class="level-page-message">Brak zapisanych ukończeń tego gracza.</p>`}
+                    </section>
+                `;
+            } catch (error) {
+                console.error("Nie udało się wczytać profilu gracza:", error);
+                container.innerHTML = `
+                    <p class="level-page-message">
+                        Nie udało się wczytać profilu gracza.
+                        <br><small>${escapeHTML(error.message)}</small>
+                    </p>
+                `;
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", loadPlayerPage);
+    </script>
+</body>
+</html>

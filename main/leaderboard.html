@@ -12,7 +12,7 @@
 
     <title>Zwariowana Lista - Ranking graczy ZLL</title>
 
-    <link rel="stylesheet" href="./assets/css/style.css?v=1.5.0">
+    <link rel="stylesheet" href="./assets/css/style.css?v=1.5.1">
 
 </head>
 
@@ -107,6 +107,16 @@ function escapeHTML(text) {
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 
+}
+
+function getPlayerProfileUrl(playerName) {
+    const params = new URLSearchParams({ player: playerName });
+
+    if (LIST_PAGE_CONTEXT.isChallengeList) {
+        params.set("list", "zcl");
+    }
+
+    return `./player.html?${params.toString()}`;
 }
 
 function formatDemonCount(count) {
@@ -772,34 +782,36 @@ async function loadLeaderboard() {
                 entry.dataset.playerName =
                     String(player.name).trim().toLowerCase();
 
-                const row =
-                    document.createElement("button");
-
                 const detailsId =
                     `player-demons-${index}`;
 
-                row.type =
-                    "button";
+                const row =
+                    document.createElement("div");
 
                 row.className =
                     "leaderboard-row";
 
-                row.setAttribute("aria-expanded", "false");
-
-                row.setAttribute("aria-controls", detailsId);
-
                 row.innerHTML = `
 
-                    <span class="leaderboard-position">
+                    <button
+                        type="button"
+                        class="leaderboard-position leaderboard-row-toggle"
+                        aria-expanded="false"
+                        aria-controls="${detailsId}"
+                        aria-label="Pokaż ukończone levele gracza ${escapeHTML(player.name)}"
+                    >
                         #${index + 1}
-                    </span>
+                    </button>
 
 
                     <span class="leaderboard-player">
 
-                        <span class="leaderboard-player-name">
+                        <a
+                            class="leaderboard-player-name"
+                            href="${escapeHTML(getPlayerProfileUrl(player.name))}"
+                        >
                             ${escapeHTML(player.name)}
-                        </span>
+                        </a>
                         <span class="leaderboard-player-titles" aria-label="Tytuł gracza">
                             <span class="leaderboard-player-title leaderboard-rank-${rank.key}">${escapeHTML(rank.title)}</span>
                         </span>
@@ -919,17 +931,19 @@ async function loadLeaderboard() {
 
                 details.innerHTML = `${demonDetails}${packDetails}`;
 
-                row.addEventListener("click", () => {
-                    const isExpanded =
-                        row.getAttribute("aria-expanded") === "true";
+                const rowToggle = row.querySelector(".leaderboard-row-toggle");
+                const toggleDetails = () => {
+                    const isExpanded = rowToggle.getAttribute("aria-expanded") === "true";
 
-                    row.setAttribute(
-                        "aria-expanded",
-                        String(!isExpanded)
-                    );
+                    rowToggle.setAttribute("aria-expanded", String(!isExpanded));
+                    details.hidden = isExpanded;
+                };
 
-                    details.hidden =
-                        isExpanded;
+                rowToggle.addEventListener("click", toggleDetails);
+                row.addEventListener("click", event => {
+                    if (!event.target.closest("a, button")) {
+                        toggleDetails();
+                    }
                 });
 
                 entry.append(row, details);
@@ -951,9 +965,9 @@ async function loadLeaderboard() {
                 .find(entry => entry.dataset.playerName === requestedPlayerName);
 
             if (requestedEntry) {
-                const row = requestedEntry.querySelector(".leaderboard-row");
+                const rowToggle = requestedEntry.querySelector(".leaderboard-row-toggle");
                 const details = requestedEntry.querySelector(".leaderboard-demons");
-                row.setAttribute("aria-expanded", "true");
+                rowToggle.setAttribute("aria-expanded", "true");
                 details.hidden = false;
                 requestedEntry.scrollIntoView({ behavior: "smooth", block: "center" });
             }
