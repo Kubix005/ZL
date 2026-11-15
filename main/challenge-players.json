@@ -39,7 +39,7 @@
   {
     "Player": "Zwariowanyy",
     "ChallengeDemons": ["santa","Mangetsuu","Larpiety","Mangetsuu 2","Speedrun top 5","32 Jumps of tech","pOWOdzonka",
-  "Fearless","Unnamed 108","Corso","In The Dark"],
+  "Fearless","Unnamed 108","Corso","In The Dark","Fear me","Shippppppppppp"],
     "Verified": [
       "Goostaw Challenge",
       "Wave Challenge X",
@@ -118,8 +118,8 @@
   },{
     "Player": "Kingryan0",
     "ChallengeDemons": [],
-    "Verified": ["Fearless"],
-    "Built": ["Fearless"]
+    "Verified": ["Fearless","Fear me"],
+    "Built": []
   },{
     "Player": "JestemRysiek",
     "ChallengeDemons": ["Sevvend Spam Trials","Sevvend Club","Tu PPa","Reviere","Ufo Kicek","Mushroom Chal II",
@@ -142,5 +142,10 @@
     "ChallengeDemons": [],
     "Verified": ["Jabłecznik"],
     "Built": ["Jabłecznik"]
+  },{
+    "Player": "JagerGMD",
+    "ChallengeDemons": [],
+    "Verified": [],
+    "Built": ["Fear me","Fearless"]
   }
 ]
