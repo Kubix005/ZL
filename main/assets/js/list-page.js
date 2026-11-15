@@ -1167,34 +1167,38 @@ function setupSearch() {
 
 
 // =====================================================
-// RECENTLY BEAT BUTTON
+// LEVELS WITHOUT WINNERS BUTTON
 // =====================================================
 
-function setupRecentlyButton() {
+function setupUnbeatenButton() {
 
-    const button = document.getElementById("recently-button");
+    const button = document.getElementById("unbeaten-button");
 
     if (!button) {
         return;
     }
 
-    const recentPlayer = players.find(player => {
-        const tag = Array.isArray(player.tag) ? player.tag : [player.tag];
-        return tag.some(value => String(value).toLowerCase() === "recent");
-    });
-
-    if (!recentPlayer || !recentPlayer.recent) {
-        return;
-    }
-
-    const recentLevel = levels.find(level =>
-        String(level.name).trim().toLowerCase() ===
-        String(recentPlayer.recent).trim().toLowerCase()
+    const winnerIdentifiers = new Set(
+        players.flatMap(player =>
+            Array.isArray(player[COMPLETION_FIELD])
+                ? player[COMPLETION_FIELD]
+                : []
+        ).map(value => String(value ?? "").trim().toLowerCase())
     );
+    const unbeatenLevel = levels
+        .filter(level => !isLegacyLevel(level))
+        .slice(0, 150)
+        .find(level =>
+            ![level.name, level.id].some(identifier =>
+                winnerIdentifiers.has(String(identifier ?? "").trim().toLowerCase())
+            )
+        );
 
-    if (recentLevel) {
-        button.style.backgroundImage = `linear-gradient(rgba(10, 35, 65, 0.42), rgba(10, 20, 40, 0.78)), url("${THUMBNAIL_URL}/${recentLevel.id}.webp")`;
-        button.title = `${recentPlayer.Player} recently beat ${recentLevel.name}`;
+    if (unbeatenLevel) {
+        button.style.backgroundImage = `linear-gradient(rgba(10, 35, 65, 0.42), rgba(10, 20, 40, 0.78)), url("${THUMBNAIL_URL}/${unbeatenLevel.id}.webp")`;
+        button.title = `Brak zapisanych zwycięzców: ${unbeatenLevel.name}`;
+    } else {
+        button.title = "Każdy level z TOP 150 ma zwycięzcę";
     }
 }
 
@@ -1211,7 +1215,7 @@ document.addEventListener(
 
         await loadLevels();
 
-        setupRecentlyButton();
+        setupUnbeatenButton();
 
         setupSearch();
 

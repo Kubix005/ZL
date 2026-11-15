@@ -29,8 +29,8 @@
     </header>
 
     <nav class="page-links" aria-label="Related pages">
-        <a href="recently.html" class="leaderboard-button recently-button">
-            OSTATNIO WBITE!
+        <a href="unbeaten.html" class="leaderboard-button unbeaten-button">
+            BEZ ZWYCIĘZCÓW
         </a>
         <a href="compare.html" class="leaderboard-button">
             PORÓWNAJ GRACZY
@@ -73,7 +73,7 @@
         </div>
 
     </main>
-<script src="./assets/js/shared.js?v=1.5.0"></script>
+<script src="./assets/js/shared.js?v=1.5.1"></script>
 <script>
 
 
@@ -340,10 +340,6 @@ async function loadLeaderboard() {
         });
 
 
-        const recentPlayer = players.find(player => {
-            const tag = Array.isArray(player.tag) ? player.tag : [player.tag];
-            return tag.some(value => String(value).toLowerCase() === "recent");
-        });
         const activeLevels = levels
             .filter(level => !isLegacyLevel(level));
         const activeLevelCount = activeLevels.length;
@@ -365,15 +361,27 @@ async function loadLeaderboard() {
                 .filter(isLegacyLevel)
                 .map(level => String(level.name).trim().toLowerCase())
         );
-        const recentLevel = recentPlayer?.recent && activeLevels.find(level =>
-            String(level.name).trim().toLowerCase() ===
-            String(recentPlayer.recent).trim().toLowerCase()
+        const winnerIdentifiers = new Set(
+            players.flatMap(player =>
+                Array.isArray(player[LIST_PAGE_CONTEXT.completionField])
+                    ? player[LIST_PAGE_CONTEXT.completionField]
+                    : []
+            ).map(value => String(value ?? "").trim().toLowerCase())
         );
-        const recentlyButton = document.querySelector(".recently-button");
+        const unbeatenLevel = activeLevels.slice(0, 150).find(level =>
+            ![level.name, level.id].some(identifier =>
+                winnerIdentifiers.has(String(identifier ?? "").trim().toLowerCase())
+            )
+        );
+        const unbeatenButton = document.querySelector(".unbeaten-button");
 
-        if (recentLevel && recentlyButton) {
-            recentlyButton.style.backgroundImage = `linear-gradient(rgba(0, 35, 0, 0.42), rgba(0, 20, 0, 0.78)), url("${THUMBNAIL_URL}/${recentLevel.id}.webp")`;
-            recentlyButton.title = `${recentPlayer.Player} ostatnio ukończył(a): ${recentLevel.name}`;
+        if (unbeatenButton) {
+            if (unbeatenLevel) {
+                unbeatenButton.style.backgroundImage = `linear-gradient(rgba(10, 35, 65, 0.42), rgba(10, 20, 40, 0.78)), url("${THUMBNAIL_URL}/${unbeatenLevel.id}.webp")`;
+                unbeatenButton.title = `Brak zapisanych zwycięzców: ${unbeatenLevel.name}`;
+            } else {
+                unbeatenButton.title = "Każdy level z TOP 150 ma zwycięzcę";
+            }
         }
 
 

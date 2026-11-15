@@ -64,6 +64,8 @@ Na stronie „Paczki ZCL” wybierz paczkę z menu po lewej, aby zobaczyć jej l
 
 Podstrony rankingu, ostatnich ukończeń, zwycięzców i porównania wybierają odpowiedni plik graczy i zestaw ukończeń. W porównaniu graczy można dodawać dowolną liczbę osób do każdego z dwóch zespołów; wynik zespołu sumuje punkty jego graczy, a wspólne ukończenia są liczone na podstawie leveli ukończonych przez co najmniej jednego członka każdego zespołu. Linki otwierane z ZCL przekazują `?list=zcl`, dzięki czemu korzystają z `lists/challenge/levels.json` i `challenge-players.json`; bez tego parametru wyświetlane są dane ZLL z `lists/zll/levels.json` i `players.json`.
 
+Przycisk „BEZ ZWYCIĘZCÓW” prowadzi do `unbeaten.html`, która pokazuje aktywne levele z TOP 150 bez zapisanych ukończeń graczy, wraz z aktualnym miejscem, punktami i datą dodania. Na ZCL za zwycięstwo liczy się wyłącznie wpis w `ChallengeDemons`; `Verified` jest pokazywane osobno i nie wyklucza levela z tej listy.
+
 Na leaderboardzie gracze są grupowani według tytułów: Elite od 3000 ZLP, Champion od 1000 do 2999 ZLP, Competitive Player od 500 do 999 ZLP, a poniżej 500 ZLP Casual. Każdy tytuł ma osobną sekcję; jeśli nie ma graczy w danej randze, sekcja pokazuje stosowną informację. W ZLL sekcja Extended list zaczyna się za grupą Elite. Kliknięcie nicku otwiera profil gracza z miejscem w rankingu, sumą ZLP i listą ukończonych leveli pokazującą aktualną pozycję, punkty i datę dodania; w ZCL pokazuje też bonus za ukończone paczki.
 
 Kliknięcie nazwy ukończonego levela w szczegółach gracza na leaderboardzie otwiera `level.html?id=ID`. Strona pokazuje metadane levela oraz graczy, którzy go ukończyli; w ZCL adres zawiera również `list=zcl`. Osobna zakładka „LEVELE” nie jest już dostępna.

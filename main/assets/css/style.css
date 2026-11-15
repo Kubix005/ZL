@@ -1283,7 +1283,7 @@ body::before {
     grid-column: 4 / span 2;
 }
 
-.recently-button {
+.unbeaten-button {
     min-height: 72px;
     display: flex;
     align-items: center;
@@ -1295,7 +1295,7 @@ body::before {
     text-shadow: 2px 2px 5px black;
 }
 
-.recently-button:hover {
+.unbeaten-button:hover {
     filter: brightness(1.15);
 }
 
@@ -2987,6 +2987,44 @@ body.compare-body .catch-up-rank {
     padding: 30px;
     color: rgba(255, 255, 255, 0.65);
     text-align: center;
+}
+
+.unbeaten-description {
+    margin: -12px 0 24px;
+    color: rgba(255, 255, 255, 0.65);
+    text-align: center;
+}
+
+.unbeaten-level-visual {
+    display: block;
+    text-decoration: none;
+}
+
+.unbeaten-level-link {
+    color: #a9d8ff;
+    text-decoration: none;
+}
+
+.unbeaten-level-link:hover {
+    color: #d7ecff;
+    text-decoration: underline;
+}
+
+.unbeaten-level-link:focus-visible {
+    border-radius: 2px;
+    outline: 2px solid #78baff;
+    outline-offset: 3px;
+}
+
+.unbeaten-level-meta,
+.unbeaten-verifiers {
+    margin: 5px 0;
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 14px;
+}
+
+.unbeaten-verifiers {
+    color: #a9d8ff;
 }
 
 /* =========================

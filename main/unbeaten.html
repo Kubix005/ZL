@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zwariowana Lista - Levele bez zwycięzców</title>
+    <link rel="stylesheet" href="./assets/css/style.css?v=1.5.1">
+</head>
+<body>
+    <header id="hejder">
+        <a href="index.html" class="header-home">Zwariowana Lista</a>
+    </header>
+
+    <nav class="page-links" aria-label="Powiązane strony">
+        <a href="leaderboard.html" class="leaderboard-button">LEADERBOARD</a>
+        <a href="winners.html" class="leaderboard-button">ZWYCIĘZCY</a>
+    </nav>
+
+    <main class="winners-page unbeaten-page">
+        <h1 class="winners-title">LEVELE BEZ ZWYCIĘZCÓW</h1>
+        <p id="unbeaten-description" class="unbeaten-description">
+            Weryfikatorzy nie są liczeni jako zwycięzcy.
+        </p>
+        <div id="unbeaten-list" class="winners-list" aria-live="polite">
+            <p class="winners-message">Ładowanie leveli...</p>
+        </div>
+    </main>
+
+    <script src="./assets/js/shared.js?v=1.5.1"></script>
+    <script>
+        const LEVELS_URL = LIST_PAGE_CONTEXT.levelsUrl;
+        const PLAYERS_URL = LIST_PAGE_CONTEXT.playersUrl;
+        const COMPLETION_FIELD = LIST_PAGE_CONTEXT.completionField;
+        const PLAYERS_FILE = PLAYERS_URL.split("/").pop();
+        const THUMBNAIL_URL = "https://raw.githubusercontent.com/All-Rated-Extreme-Demon-List/Thumbnails/main/levels/cards";
+        const MAX_RANKED_LEVELS = 150;
+
+        function escapeHTML(value) {
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function normalizeIdentifier(value) {
+            return String(value ?? "").trim().toLowerCase();
+        }
+
+        function getLevelIdentifiers(level) {
+            return [level?.name, level?.id]
+                .filter(value => value != null)
+                .map(normalizeIdentifier)
+                .filter(Boolean);
+        }
+
+        function getLevelUrl(levelId) {
+            const params = new URLSearchParams({ id: String(levelId) });
+
+            if (LIST_PAGE_CONTEXT.isChallengeList) {
+                params.set("list", "zcl");
+            }
+
+            return `./level.html?${params.toString()}`;
+        }
+
+        async function loadUnbeatenLevels() {
+            const container = document.getElementById("unbeaten-list");
+
+            try {
+                const [levelsResponse, playersResponse] = await Promise.all([
+                    fetch(LEVELS_URL, { cache: "no-cache" }),
+                    fetch(PLAYERS_URL, { cache: "no-cache" })
+                ]);
+
+                if (!levelsResponse.ok || !playersResponse.ok) {
+                    throw new Error(`Nie udało się wczytać leveli lub pliku ${PLAYERS_FILE}.`);
+                }
+
+                const [levels, players] = await Promise.all([
+                    levelsResponse.json(),
+                    playersResponse.json()
+                ]);
+
+                if (!Array.isArray(levels) || !Array.isArray(players)) {
+                    throw new Error(`Pliki leveli i ${PLAYERS_FILE} muszą zawierać tablice.`);
+                }
+
+                const activeLevels = levels
+                    .filter(level => level && !isLegacyLevel(level));
+                const displayedLevels = activeLevels.slice(0, MAX_RANKED_LEVELS);
+                const levelsByIdentifier = new Map();
+                const winnersByLevel = new Map(
+                    displayedLevels.map(level => [level, new Set()])
+                );
+                const verifiersByLevel = new Map(
+                    displayedLevels.map(level => [level, new Set()])
+                );
+
+                displayedLevels.forEach(level => {
+                    getLevelIdentifiers(level).forEach(identifier => {
+                        if (!levelsByIdentifier.has(identifier)) {
+                            levelsByIdentifier.set(identifier, level);
+                        }
+                    });
+                });
+
+                players.forEach(player => {
+                    const playerName = String(player?.Player ?? "").trim();
+
+                    if (!playerName) {
+                        return;
+                    }
+
+                    const completions = Array.isArray(player[COMPLETION_FIELD])
+                        ? player[COMPLETION_FIELD]
+                        : [];
+                    completions.forEach(completion => {
+                        const level = levelsByIdentifier.get(normalizeIdentifier(completion));
+
+                        if (level) {
+                            winnersByLevel.get(level).add(playerName);
+                        }
+                    });
+
+                    if (LIST_PAGE_CONTEXT.isChallengeList && Array.isArray(player.Verified)) {
+                        player.Verified.forEach(verification => {
+                            const level = levelsByIdentifier.get(normalizeIdentifier(verification));
+
+                            if (level) {
+                                verifiersByLevel.get(level).add(playerName);
+                            }
+                        });
+                    }
+                });
+
+                const unbeatenLevels = displayedLevels
+                    .map((level, index) => ({
+                        level,
+                        rank: index + 1,
+                        winners: [...winnersByLevel.get(level)],
+                        verifiers: [...verifiersByLevel.get(level)]
+                    }))
+                    .filter(entry => entry.winners.length === 0);
+
+                document.title = LIST_PAGE_CONTEXT.isChallengeList
+                    ? "Zwariowana Lista - Challenges bez zwycięzców ZCL"
+                    : "Zwariowana Lista - Levele bez zwycięzców";
+                document.querySelector(".winners-title").textContent =
+                    LIST_PAGE_CONTEXT.isChallengeList
+                        ? "CHALLENGES BEZ ZWYCIĘZCÓW"
+                        : "LEVELE BEZ ZWYCIĘZCÓW";
+                document.getElementById("unbeaten-description").textContent =
+                    LIST_PAGE_CONTEXT.isChallengeList
+                        ? "Pokazujemy aktywne challenges bez ukończeń w ChallengeDemons. Weryfikatorzy nie są liczeni jako zwycięzcy."
+                        : "Pokazujemy aktywne levele bez ukończeń graczy.";
+
+                if (!unbeatenLevels.length) {
+                    container.innerHTML =
+                        '<p class="winners-message">Każdy level z TOP 150 ma zapisane zwycięstwo gracza.</p>';
+                    return;
+                }
+
+                container.innerHTML = unbeatenLevels.map(({ level, rank, verifiers }) => {
+                    const levelName = String(level.name ?? "Level bez nazwy");
+                    const points = rank <= MAX_RANKED_LEVELS
+                        ? `${getPoints(rank, activeLevels.length)} ZLP`
+                        : "Poza TOP 150";
+                    const addedAt = level.AddedAt ?? level.addedAt;
+                    const verifiedMarkup = verifiers.length
+                        ? `<p class="unbeaten-verifiers">Zweryfikował: ${verifiers.map(escapeHTML).join(", ")}</p>`
+                        : "";
+                    const levelUrl = getLevelUrl(level.id);
+
+                    return `
+                        <article class="winner-level">
+                            <a class="winner-level-visual unbeaten-level-visual" href="${escapeHTML(levelUrl)}" aria-label="Otwórz level ${escapeHTML(levelName)}">
+                                <img class="winner-level-image" src="${THUMBNAIL_URL}/${encodeURIComponent(String(level.id))}.webp" alt="${escapeHTML(levelName)}" loading="lazy">
+                                <span class="winner-level-rank">TOP ${rank}</span>
+                            </a>
+                            <div class="winner-level-content">
+                                <h2 class="winner-level-name">
+                                    <a class="unbeaten-level-link" href="${escapeHTML(levelUrl)}">${escapeHTML(levelName)}</a>
+                                </h2>
+                                <p class="unbeaten-level-meta">Miejsce: #${rank} · Punkty: ${points}</p>
+                                <p class="unbeaten-level-meta">Dodano: ${addedAt ? escapeHTML(addedAt) : "brak daty"}</p>
+                                <p class="winner-empty">Brak zapisanych zwycięzców</p>
+                                ${verifiedMarkup}
+                            </div>
+                        </article>
+                    `;
+                }).join("");
+
+                container.querySelectorAll(".winner-level-image").forEach(image => {
+                    image.addEventListener("error", () => image.remove());
+                });
+            } catch (error) {
+                console.error("Nie udało się wczytać leveli bez zwycięzców:", error);
+                container.innerHTML =
+                    '<p class="winners-message">Nie udało się wczytać leveli bez zwycięzców.</p>';
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", loadUnbeatenLevels);
+    </script>
+</body>
+</html>

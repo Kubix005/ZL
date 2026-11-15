@@ -146,6 +146,7 @@ if (LIST_PAGE_CONTEXT.isChallengeList) {
         "level.html",
         "levels.html",
         "recently.html",
+        "unbeaten.html",
         "winners.html",
         "compare.html",
         "new-levels.html",
