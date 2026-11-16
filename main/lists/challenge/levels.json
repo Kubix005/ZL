@@ -77,6 +77,12 @@
         "tag":["Wave"]
     },
     {
+        "name":"MANIFESTO",
+        "id":"152221525",
+        "AddedAt":"2026-11-12",
+        "tag":["Overall"]
+    },
+    {
         "name":"Ether",
         "id":"151820878",
         "AddedAt":"2026-11-04",
@@ -88,13 +94,6 @@
         "AddedAt":"2026-10-24",
         "tag":["Cube"]
     },
-    {
-        "name":"MANIFESTO",
-        "id":"152221525",
-        "AddedAt":"2026-11-12",
-        "tag":["Overall"]
-        },
-
     {
         "name":"Lacewing",
         "id":"148430500",
