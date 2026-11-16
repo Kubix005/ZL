@@ -2,68 +2,211 @@
   {
     "Player": "Kicek1146",
     "ChallengeDemons": [
-      "Lacewing","Gooslaw Challenge","Shower","sevvend club","In The Dark","i fear these jumps","CORSO",
-      "Armia Szczupakuw","peesquared","Bodek Spam Trials","Spaceship","Hotline","Sunken","ArchAngel",
-      "ill Take Care Of You","Checkers VS Chess","Zepsuta Kanapka","Pozdrawiamy Wojana","The Golden Dandelion",
-      "Mushroom Chal II","Tu Ppa","Reviere","Koszatniczka Wave","Wave Challenge 9","Wave Challenge X","Nudbet Circles",
+      "Lacewing",
+      "Gooslaw Challenge",
+      "Shower",
+      "sevvend club",
+      "In The Dark",
+      "i fear these jumps",
+      "CORSO",
+      "Armia Szczupakuw",
+      "peesquared",
+      "Bodek Spam Trials",
+      "Spaceship",
+      "Hotline",
+      "Sunken",
+      "ArchAngel",
+      "ill Take Care Of You",
+      "Checkers VS Chess",
+      "Zepsuta Kanapka",
+      "Pozdrawiamy Wojana",
+      "The Golden Dandelion",
+      "Mushroom Chal II",
+      "Tu Ppa",
+      "Reviere",
+      "Koszatniczka Wave",
+      "Wave Challenge 9",
+      "Wave Challenge X",
+      "Nudbet Circles",
       "Fallen Wave"
     ],
-    "Verified": ["Mangetsuu 2","santa","Mangetsuu","Kicek jest w ciazy","Fun saws","Speedrun top 5","Nooboek chelendz buf",
-  "50 mim challenge","pOWOdzonka","Ufo Kicek","32 Jumps of tech"],
-    "Built": ["Mangetsuu 2","santa","Mangetsuu","Kicek jest w ciazy","Fallen Wave","Speedrun top 5","Nooboek chelendz buf",
-  "50 mim challenge","pOWOdzonka","32 Jumps of tech"]
+    "Verified": [
+      "Mangetsuu 2",
+      "santa",
+      "Mangetsuu",
+      "Kicek jest w ciazy",
+      "Fun saws",
+      "Speedrun top 5",
+      "Nooboek chelendz buf",
+      "50 mim challenge",
+      "pOWOdzonka",
+      "Ufo Kicek",
+      "32 Jumps of tech"
+    ],
+    "Built": [
+      "Mangetsuu 2",
+      "santa",
+      "Mangetsuu",
+      "Kicek jest w ciazy",
+      "Fallen Wave",
+      "Speedrun top 5",
+      "Nooboek chelendz buf",
+      "50 mim challenge",
+      "pOWOdzonka",
+      "32 Jumps of tech"
+    ]
   },
   {
     "Player": "Evelyn",
-    "ChallengeDemons": ["CORSO","Hotline","ArchAngel","ill Take Care Of You","The Golden Dandelion","Mushroom Chal II"
-  ,"Tu Ppa"
-  ],
-    "Verified": ["Larpiety","Shower","Koszatniczka Wave","In The Dark"],
+    "ChallengeDemons": [
+      "CORSO",
+      "Hotline",
+      "ArchAngel",
+      "ill Take Care Of You",
+      "The Golden Dandelion",
+      "Mushroom Chal II",
+      "Tu Ppa"
+    ],
+    "Verified": [
+      "Larpiety",
+      "Shower",
+      "Koszatniczka Wave",
+      "In The Dark"
+    ],
     "Built": [
-      "Larpiety","Wave Challenge X","Nudbet Circles","Shower","Koszatniczka Wave","In The Dark"
+      "Larpiety",
+      "Wave Challenge X",
+      "Nudbet Circles",
+      "Shower",
+      "Koszatniczka Wave",
+      "In The Dark"
     ]
   },
   {
     "Player": "CyrittX",
-    "ChallengeDemons": ["In The Dark","Fun Saws","Zepsuta Kanapka","Koszatniczka Wave","Fallen Wave"],
-    "Verified": ["i fear these jumps","CORSO","Armia Szczupakuw","peesquared","Spaceship","Hotline",
-  "Sunken","ArchAngel","ill take care of you","Checkers VS Chess","Pozdrawiamy Wojana","The Golden Dandelion",
-"Mushroom Chal II","Tu Ppa","Reviere","CORSO","Reviere","Mushroom FLuxxwave","MuuhrOXm luxwavveqq"],
+    "ChallengeDemons": [
+      "In The Dark",
+      "Fun Saws",
+      "Zepsuta Kanapka",
+      "Koszatniczka Wave",
+      "Fallen Wave"
+    ],
+    "Verified": [
+      "i fear these jumps",
+      "CORSO",
+      "Armia Szczupakuw",
+      "peesquared",
+      "Spaceship",
+      "Hotline",
+      "Sunken",
+      "ArchAngel",
+      "ill take care of you",
+      "Checkers VS Chess",
+      "Pozdrawiamy Wojana",
+      "The Golden Dandelion",
+      "Mushroom Chal II",
+      "Tu Ppa",
+      "Reviere",
+      "CORSO",
+      "Reviere",
+      "Mushroom FLuxxwave",
+      "MuuhrOXm luxwavveqq"
+    ],
     "Built": [
-      "Goostaw Challenge","Lacewing","Gooslaw Challenge", "i fear these jumps","CORSO",
-      "Armia Szczupakuw","peesquared","Spaceship","Hotline","Sunken","ArchAngel","ill take care of you",
-      "Checkers VS Chess","Zepsuta Kanapka","Pozdrawiamy Wojana"," The Golden Dandelion","Mushroom Chal II",
-      "Tu Ppa","Reviere","Mushroom FLuxxwave","MANIFESTO","MuuhrOXm luxwavveqq"
+      "Goostaw Challenge",
+      "Lacewing",
+      "Gooslaw Challenge",
+      "i fear these jumps",
+      "CORSO",
+      "Armia Szczupakuw",
+      "peesquared",
+      "Spaceship",
+      "Hotline",
+      "Sunken",
+      "ArchAngel",
+      "ill take care of you",
+      "Checkers VS Chess",
+      "Zepsuta Kanapka",
+      "Pozdrawiamy Wojana",
+      " The Golden Dandelion",
+      "Mushroom Chal II",
+      "Tu Ppa",
+      "Reviere",
+      "Mushroom FLuxxwave",
+      "MANIFESTO",
+      "MuuhrOXm luxwavveqq"
     ]
   },
   {
     "Player": "Zwariowanyy",
-    "ChallengeDemons": ["santa","Mangetsuu","Larpiety","Mangetsuu 2","Speedrun top 5","32 Jumps of tech","pOWOdzonka",
-  "Fearless","Unnamed 108","Corso","In The Dark","Fear me","Shippppppppppp"],
+    "ChallengeDemons": [
+      "santa",
+      "Mangetsuu",
+      "Larpiety",
+      "Mangetsuu 2",
+      "Speedrun top 5",
+      "32 Jumps of tech",
+      "pOWOdzonka",
+      "Fearless",
+      "Unnamed 108",
+      "Corso",
+      "In The Dark",
+      "Fear me",
+      "Shippppppppppp"
+    ],
     "Verified": [
       "Goostaw Challenge",
       "Wave Challenge X",
       "Wave Challenge 9",
-      "Lacewing","Nudbet Circles", "Gooslaw Challenge","Fear me" 
+      "Lacewing",
+      "Nudbet Circles",
+      "Gooslaw Challenge",
+      "Fear me"
     ],
-    "Built": ["Wave Challenge X","Nudbet Circles","Wave Challege 9"]
+    "Built": [
+      "Wave Challenge X",
+      "Nudbet Circles",
+      "Wave Challege 9"
+    ]
   },
   {
     "Player": "Ludwiczek",
-    "ChallengeDemons": ["Fun Saws","Reviere","Tu Ppa","Pozdrawiamy Wojana","peesquared","Mushroom Chal II",
-  "Koszatniczka Wave","ArchAngel"],
-    "Verified": [
-      "chmurka","Shippppppppppp"
+    "ChallengeDemons": [
+      "Fun Saws",
+      "Reviere",
+      "Tu Ppa",
+      "Pozdrawiamy Wojana",
+      "peesquared",
+      "Mushroom Chal II",
+      "Koszatniczka Wave",
+      "ArchAngel"
     ],
-    "Built": ["chmurka","Shippppppppppp"]
+    "Verified": [
+      "chmurka",
+      "Shippppppppppp"
+    ],
+    "Built": [
+      "chmurka",
+      "Shippppppppppp"
+    ]
   },
   {
     "Player": "Sevvend",
-    "ChallengeDemons": ["In The Dark","ill Take Care Of You"],
+    "ChallengeDemons": [
+      "In The Dark",
+      "ill Take Care Of You"
+    ],
     "Verified": [
-      "Sevvend club","Zepsuta Kanapka","Sevvend Spam Trials"]
-    ,
-    "Built": ["Sevvend club","Zepsuta Kanapka","Pozdrawiamy Wojana","Sevvend Spam Trials"]
+      "Sevvend club",
+      "Zepsuta Kanapka",
+      "Sevvend Spam Trials"
+    ],
+    "Built": [
+      "Sevvend club",
+      "Zepsuta Kanapka",
+      "Pozdrawiamy Wojana",
+      "Sevvend Spam Trials"
+    ]
   },
   {
     "Player": "Bodek",
@@ -71,83 +214,222 @@
     "Verified": [
       "Bodek Spam Trials"
     ],
-    "Built": ["Bodek Spam Trials"]
-  },{
+    "Built": [
+      "Bodek Spam Trials"
+    ]
+  },
+  {
     "Player": "Kubix005",
-    "ChallengeDemons": ["Mushroom Chal II","Fun Saws","Tu Ppa","Reviere","peesquared","CORSO","Armia Szczupakuw"
-  ,"spaceship","Ufo Kicek","Sevvend Spam Trials","Sunken","Mangetsuu 2","Mushroom Fluxxwave","MuuhrOXm luxwavveqq",
-"Koszatniczka Wave","50 mim challenge"],
-    "Verified": [
-      "Fallen Wave","Ether","ElectroShock"
-    ],
-    "Built": ["Fun Saws","Fallen Wave","Ufo Kicek","Ether","ElectroShock"]
-  },{
-    "Player": "Licheniu",
-    "ChallengeDemons": ["Larpiety","Gooslaw Challenge"],
-    "Verified": [
-    ],
-    "Built": []
-  },{
-    "Player": "APieces",
-    "ChallengeDemons": ["Mangetsuu 2","Lacewing","i fear these jumps","Spaceship","Pozdrawiamy Wojana","Reviere",
-  "Ether"],
-    "Verified": ["Unnamed 108"
-    ],
-    "Built": ["Unnamed 108"]
-  },{
-    "Player": "Koszatka123",
-    "ChallengeDemons": ["Hotline","Mushroom Chal II"],
-    "Verified": [
-    ],
-    "Built": []
-  },{
-    "Player": "SnajperekYT",
-    "ChallengeDemons": ["Checkers VS Chess","Koszatniczka Wave","Mushroom Chal II"],
-    "Verified": [
-    ],
-    "Built": []
-  },{
-    "Player": "MyvartPL",
     "ChallengeDemons": [
-      "Fallen Wave","i fear these jumps","Hotline","Sunken","ill Take Care Of You","SpaceShip",
-      "peesquared","Checkers VS Chess","ArchAngel","ElectroShock","Sevvend Club","Fun Saws","santa",
-      "Mangetsuu 2","Armia Szczupakuw","Mangetsuu","Zepsuta Kanapka","CORSO","Ether"
+      "Mushroom Chal II",
+      "Fun Saws",
+      "Tu Ppa",
+      "Reviere",
+      "peesquared",
+      "CORSO",
+      "Armia Szczupakuw",
+      "spaceship",
+      "Ufo Kicek",
+      "Sevvend Spam Trials",
+      "Sunken",
+      "Mangetsuu 2",
+      "Mushroom Fluxxwave",
+      "MuuhrOXm luxwavveqq",
+      "Koszatniczka Wave",
+      "50 mim challenge"
     ],
-    "Verified": ["MANIFESTO"
+    "Verified": [
+      "Fallen Wave",
+      "Ether",
+      "ElectroShock"
     ],
-    "Built": []
-  },{
-    "Player": "Kingryan0",
-    "ChallengeDemons": ["Tu Ppa","Reviere","Ufo Kicek","Mushroom Chal II","Fallen Wave","The Golden Dandelion","Koszatniczka Wave","Zepsuta Kanapka",
-  "ElectroShock","ill Take Care Of You","santa","Larpiety","mangetsuu","Gooslaw Challenge"],
-    "Verified": ["Fearless"],
-    "Built": ["Fearless"]
-  },{
-    "Player": "JestemRysiek",
-    "ChallengeDemons": ["Sevvend Spam Trials","Sevvend Club","Tu PPa","Reviere","Ufo Kicek","Mushroom Chal II",
-    "Fallen Wave","The Golden Dandelion","Pozdrawiamy Wojana","Koszatniczka Wave","ElectroShock","Zepsuta Kanapka",
-    "Checkers VS Chess","ill Take Care Of You","ArchAngel","Wave Challenge 9","Sunken","Hotline","Fun Saws",
-    "SpaceShip","Kicek jest w ciazy","50 mim challenge","peesquared","Bodek Spam Trials","CORSO","Armia Szczupakuw","mangetsuu",
-    "santa","Mangetsuu 2","i fear these jumps","In the Dark","Mushroom Fluxxwave","Ether","MANIFESTO","MuuhrOXm luxwavveqq",
-    "Nooboek chelendz buf","Shower"
-  ],
-    "Verified": ["Wave Challenge 4","Rysiek Ufo Trials"
+    "Built": [
+      "Fun Saws",
+      "Fallen Wave",
+      "Ufo Kicek",
+      "Ether",
+      "ElectroShock"
+    ]
+  },
+  {
+    "Player": "Licheniu",
+    "ChallengeDemons": [
+      "Larpiety",
+      "Gooslaw Challenge"
     ],
-    "Built": ["Wave Challenge 4","Rysiek Ufo Trials"]
-  },{
-    "Player": "Ciastek",
-    "ChallengeDemons": ["Mangetsuu","santa","Mangetsuu 2","Armia Szczupakuw","i fear these jumps","MANIFESTO"],
     "Verified": [],
     "Built": []
-  },{
+  },
+  {
+    "Player": "APieces",
+    "ChallengeDemons": [
+      "Mangetsuu 2",
+      "Lacewing",
+      "i fear these jumps",
+      "Spaceship",
+      "Pozdrawiamy Wojana",
+      "Reviere",
+      "Ether"
+    ],
+    "Verified": [
+      "Unnamed 108"
+    ],
+    "Built": [
+      "Unnamed 108"
+    ]
+  },
+  {
+    "Player": "Koszatka123",
+    "ChallengeDemons": [
+      "Hotline",
+      "Mushroom Chal II"
+    ],
+    "Verified": [],
+    "Built": []
+  },
+  {
+    "Player": "SnajperekYT",
+    "ChallengeDemons": [
+      "Checkers VS Chess",
+      "Koszatniczka Wave",
+      "Mushroom Chal II"
+    ],
+    "Verified": [],
+    "Built": []
+  },
+  {
+    "Player": "MyvartPL",
+    "ChallengeDemons": [
+      "Fallen Wave",
+      "i fear these jumps",
+      "Hotline",
+      "Sunken",
+      "ill Take Care Of You",
+      "SpaceShip",
+      "peesquared",
+      "Checkers VS Chess",
+      "ArchAngel",
+      "ElectroShock",
+      "Sevvend Club",
+      "Fun Saws",
+      "santa",
+      "Mangetsuu 2",
+      "Armia Szczupakuw",
+      "Mangetsuu",
+      "Zepsuta Kanapka",
+      "CORSO",
+      "Ether"
+    ],
+    "Verified": [
+      "MANIFESTO"
+    ],
+    "Built": []
+  },
+  {
+    "Player": "Kingryan0",
+    "ChallengeDemons": [
+      "Tu Ppa",
+      "Reviere",
+      "Ufo Kicek",
+      "Mushroom Chal II",
+      "Fallen Wave",
+      "The Golden Dandelion",
+      "Koszatniczka Wave",
+      "Zepsuta Kanapka",
+      "ElectroShock",
+      "ill Take Care Of You",
+      "santa",
+      "Larpiety",
+      "mangetsuu",
+      "Gooslaw Challenge"
+    ],
+    "Verified": [
+      "Fearless"
+    ],
+    "Built": [
+      "Fearless"
+    ]
+  },
+  {
+    "Player": "JestemRysiek",
+    "ChallengeDemons": [
+      "Sevvend Spam Trials",
+      "Sevvend Club",
+      "Tu PPa",
+      "Reviere",
+      "Ufo Kicek",
+      "Mushroom Chal II",
+      "Fallen Wave",
+      "The Golden Dandelion",
+      "Pozdrawiamy Wojana",
+      "Koszatniczka Wave",
+      "ElectroShock",
+      "Zepsuta Kanapka",
+      "Checkers VS Chess",
+      "ill Take Care Of You",
+      "ArchAngel",
+      "Wave Challenge 9",
+      "Sunken",
+      "Hotline",
+      "Fun Saws",
+      "SpaceShip",
+      "Kicek jest w ciazy",
+      "50 mim challenge",
+      "peesquared",
+      "Bodek Spam Trials",
+      "CORSO",
+      "Armia Szczupakuw",
+      "mangetsuu",
+      "santa",
+      "Mangetsuu 2",
+      "i fear these jumps",
+      "In the Dark",
+      "Mushroom Fluxxwave",
+      "Ether",
+      "MANIFESTO",
+      "MuuhrOXm luxwavveqq",
+      "Nooboek chelendz buf",
+      "Shower"
+    ],
+    "Verified": [
+      "Wave Challenge 4",
+      "Rysiek Ufo Trials"
+    ],
+    "Built": [
+      "Wave Challenge 4",
+      "Rysiek Ufo Trials"
+    ]
+  },
+  {
+    "Player": "Ciastek",
+    "ChallengeDemons": [
+      "Mangetsuu",
+      "santa",
+      "Mangetsuu 2",
+      "Armia Szczupakuw",
+      "i fear these jumps",
+      "MANIFESTO"
+    ],
+    "Verified": [],
+    "Built": []
+  },
+  {
     "Player": "NieznanyPingwin",
     "ChallengeDemons": [],
-    "Verified": ["Jabłecznik"],
-    "Built": ["Jabłecznik"]
-  },{
+    "Verified": [
+      "Jabłecznik"
+    ],
+    "Built": [
+      "Jabłecznik"
+    ]
+  },
+  {
     "Player": "JagerGMD",
     "ChallengeDemons": [],
     "Verified": [],
-    "Built": ["Fear me","Fearless"]
+    "Built": [
+      "Fear me",
+      "Fearless"
+    ]
   }
 ]

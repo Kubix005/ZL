@@ -149,6 +149,34 @@
                 );
         }
 
+        function getBuiltLevels(player, levelLookup) {
+            const builtLevels = [];
+            const seenBuiltLevels = new Set();
+
+            (Array.isArray(player.Built) ? player.Built : []).forEach(builtName => {
+                const name = String(builtName ?? "").trim();
+                const identifier = normalizeIdentifier(name);
+
+                if (!identifier || seenBuiltLevels.has(identifier)) {
+                    return;
+                }
+
+                seenBuiltLevels.add(identifier);
+                const entry = levelLookup.levelsByIdentifier.get(identifier);
+
+                builtLevels.push({
+                    name: entry?.level?.name ? String(entry.level.name).trim() : name,
+                    id: entry?.level?.id ?? null,
+                    rank: entry?.rank ?? null
+                });
+            });
+
+            return builtLevels.sort((a, b) =>
+                (a.rank ?? Infinity) - (b.rank ?? Infinity) ||
+                a.name.localeCompare(b.name, "pl")
+            );
+        }
+
         function getPlayerScore(player, levelLookup, activeLevelCount, packs, levels) {
             const rankedCompletions = getCompletedLevels(
                 player,
@@ -216,6 +244,15 @@
                     </div>
                 </li>
             `;
+        }
+
+        function renderBuiltLevel(entry) {
+            const levelName = escapeHTML(entry.name);
+            const nameMarkup = entry.id != null
+                ? `<a class="player-level-title" href="${escapeHTML(getLevelUrl(entry.id))}">${levelName}</a>`
+                : `<strong class="player-level-title">${levelName}</strong>`;
+
+            return `<li class="player-level-entry">${nameMarkup}</li>`;
         }
 
         function getPackRecommendations(player, packs, levels) {
@@ -307,6 +344,9 @@
                     levelLookup,
                     activeLevelCount
                 );
+                const builtLevels = LIST_PAGE_CONTEXT.isChallengeList
+                    ? getBuiltLevels(player, levelLookup)
+                    : [];
                 const hardestLevel = completedLevels.find(level =>
                     level.rank != null && level.rank <= MAX_RANKED_LEVELS
                 );
@@ -387,6 +427,17 @@
                                </ul>`
                             : `<p class="level-page-message">Brak zapisanych ukończeń tego gracza.</p>`}
                     </section>
+                    ${LIST_PAGE_CONTEXT.isChallengeList
+                        ? `<section class="level-victors-panel player-levels-panel">
+                            <h2>Zbudowane wyzwania</h2>
+                            <p class="level-victors-count">${builtLevels.length} zapisanych budów</p>
+                            ${builtLevels.length
+                                ? `<ul class="level-victors-list player-level-list">
+                                    ${builtLevels.map(renderBuiltLevel).join("")}
+                                   </ul>`
+                                : `<p class="level-page-message">Brak zapisanych zbudowanych wyzwań tego gracza.</p>`}
+                           </section>`
+                        : ""}
                 `;
             } catch (error) {
                 console.error("Nie udało się wczytać profilu gracza:", error);
