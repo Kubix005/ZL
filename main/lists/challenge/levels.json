@@ -23,6 +23,12 @@
         "AddedAt":"2026-11-15"
     },
     {
+        "name":"Tiktok Challenge",
+        "id":"110613996",
+        "tag":["Wave"],
+        "AddedAt":"2026-11-16"
+    },
+    {
         "name":"pOWOdzonka",
         "id":"151516478",
         "AddedAt":"2026-10-30",
@@ -32,12 +38,6 @@
         "name":"Goostaw Challenge",
         "id":"148183775",
         "tag":["Ship"]
-    },
-    {
-        "name":"Tiktok Challenge",
-        "id":"110613996",
-        "tag":["Wave"],
-        "AddedAt":"2026-11-16"
     },
     {
         "name":"Wave Challenge X",
