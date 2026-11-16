@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zwariowana Lista - Gracz</title>
-    <link rel="stylesheet" href="./assets/css/style.css?v=1.5.1">
+    <link rel="stylesheet" href="./assets/css/style.css?v=1.5.2">
 </head>
 <body>
     <header id="hejder">
@@ -218,6 +218,23 @@
             `;
         }
 
+        function getPackRecommendations(player, packs, levels) {
+            return getPlayerPackStatuses(player, packs, levels)
+                .map(pack => ({
+                    pack,
+                    remainingLevels: pack.levels.filter(level => !level.completed)
+                }))
+                .filter(({ pack, remainingLevels }) =>
+                    remainingLevels.length > 0 &&
+                    (remainingLevels.length === 1 ||
+                        (pack.levels.length - remainingLevels.length) / pack.levels.length >= 0.75)
+                )
+                .sort((a, b) =>
+                    a.remainingLevels.length - b.remainingLevels.length ||
+                    b.pack.points - a.pack.points
+                );
+        }
+
         async function loadPlayerPage() {
             const container = document.getElementById("player-page");
 
@@ -297,6 +314,9 @@
                     (total, pack) => total + pack.points,
                     0
                 );
+                const packRecommendations = LIST_PAGE_CONTEXT.isChallengeList
+                    ? getPackRecommendations(player, packs, levels)
+                    : [];
                 const packDetails = LIST_PAGE_CONTEXT.isChallengeList && playerScore.packs.length
                     ? `
                         <div class="player-pack-details">
@@ -304,6 +324,30 @@
                             <ul>
                                 ${playerScore.packs.map(pack => `
                                     <li>${escapeHTML(pack.name)} <span>+${pack.points} ZLP</span></li>
+                                `).join("")}
+                            </ul>
+                        </div>
+                    `
+                    : "";
+                const packRecommendationsMarkup = packRecommendations.length
+                    ? `
+                        <div class="player-pack-recommendations">
+                            <strong>Najbliżej do bonusu z paczki</strong>
+                            <p>Najpierw paczki wymagające najmniej leveli, potem te z większym bonusem.</p>
+                            <ul>
+                                ${packRecommendations.map(({ pack, remainingLevels }) => `
+                                    <li>
+                                        <div class="player-pack-recommendation-heading">
+                                            <strong>${escapeHTML(pack.name)}</strong>
+                                            <span>+${pack.points} ZLP</span>
+                                        </div>
+                                        <div class="player-pack-recommendation-levels">
+                                            Do ukończenia:
+                                            ${remainingLevels.map(level =>
+                                                `<a href="${escapeHTML(getLevelUrl(level.id))}">${escapeHTML(level.name)}</a>`
+                                            ).join(", ")}
+                                        </div>
+                                    </li>
                                 `).join("")}
                             </ul>
                         </div>
@@ -331,6 +375,7 @@
                                     : ""}
                             </dl>
                             ${packDetails}
+                            ${packRecommendationsMarkup}
                         </div>
                     </aside>
                     <section class="level-victors-panel player-levels-panel">
