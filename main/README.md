@@ -82,7 +82,7 @@ Linki do filmów z ukończeń zapisuj osobno dla każdej listy: ZCL w `links.jso
 ]
 ```
 
-W rankingu odpowiedniej listy kafelek ukończonego poziomu staje się linkiem do filmu, jeśli istnieje pasujący wpis dla gracza i ID poziomu. Jeden film może mieć kilka ID w `levelId`; każdy z tych kafelków otworzy to samo wideo. Link otwiera się w nowej karcie. Jeśli dla poziomu jest osobny film, dodaj dla niego osobny obiekt. Dla zachowania zgodności nadal akceptowane jest pojedyncze ID jako tekst; przy braku linków plik może zawierać pustą tablicę `[]`.
+W rankingu odpowiedniej listy kafelek ukończonego poziomu staje się linkiem do filmu, jeśli istnieje pasujący wpis dla gracza i ID poziomu. Jeden film może mieć kilka ID w `levelId`; każdy z tych kafelków otworzy to samo wideo. Link otwiera się w nowej karcie. Jeśli dla poziomu jest osobny film, dodaj dla niego osobny obiekt. Dla zachowania zgodności nadal akceptowane jest pojedyncze ID jako tekst; przy braku linków plik może zawierać pustą tablicę `[]`. Kafelek jest oznaczany na zielono jako potwierdzony run, gdy host linku to `youtube.com`, jego subdomena, `youtu.be` lub `tiktok.com` i jego subdomena; pozostałe serwisy pozostają niepotwierdzone.
 
 Zakładka „Nowe Levele!” pokazuje aktywne levele dodane w ciągu ostatnich 7 dni. Przy dodawaniu wpisu do odpowiedniego `levels.json` ustaw pole `AddedAt` na datę w formacie `YYYY-MM-DD`; starsze wpisy bez tej daty nie pojawią się w zakładce. Pole `addedAt` jest także obsługiwane dla zgodności. Data jest też używana w changelogu leveli. W szczegółach gracza w leaderboardzie ukończone levele z tej zakładki mają oznaczenie `NEW` obok miejsca na liście.
 

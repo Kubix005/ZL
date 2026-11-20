@@ -1789,6 +1789,16 @@ body::before {
 
 }
 
+.leaderboard-demon--checked {
+    background: rgba(46, 125, 50, 0.22);
+    border: 1px solid rgba(129, 199, 132, 0.65);
+}
+
+.leaderboard-demon--checked .leaderboard-demon-level-link {
+    color: #a5d6a7;
+    text-decoration-color: rgba(165, 214, 167, 0.75);
+}
+
 .leaderboard-demon-name {
 
     min-width: 0;

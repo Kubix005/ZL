@@ -327,6 +327,12 @@ async function loadLeaderboard() {
                 return;
             }
 
+            const checked = videoUrl.hostname === "youtu.be" ||
+                videoUrl.hostname === "youtube.com" ||
+                videoUrl.hostname.endsWith(".youtube.com") ||
+                videoUrl.hostname === "tiktok.com" ||
+                videoUrl.hostname.endsWith(".tiktok.com");
+
             levelIds.forEach(levelId => {
                 const key = `${playerName.toLowerCase()}::${levelId.toLowerCase()}`;
 
@@ -335,7 +341,10 @@ async function loadLeaderboard() {
                     return;
                 }
 
-                videoLinks.set(key, videoUrl.toString());
+                videoLinks.set(key, {
+                    url: videoUrl.toString(),
+                    Checked: checked
+                });
             });
         });
 
@@ -599,6 +608,9 @@ async function loadLeaderboard() {
                         const name = String(demonName).trim();
                         const demon = levelMap[name.toLowerCase()] ||
                             levelMap[name];
+                        const video = demon?.level.id != null
+                            ? videoLinks.get(`${playerName.toLowerCase()}::${String(demon.level.id).trim().toLowerCase()}`)
+                            : null;
 
                         return {
                             name: demon?.level.name || name,
@@ -608,9 +620,8 @@ async function loadLeaderboard() {
                             tags: getLevelTags(demon?.level),
                             isNew: demon?.level.id != null &&
                                 newLevelIds.has(String(demon.level.id)),
-                            videoUrl: demon?.level.id != null
-                                ? videoLinks.get(`${playerName.toLowerCase()}::${String(demon.level.id).trim().toLowerCase()}`)
-                                : null
+                            videoUrl: video?.url ?? null,
+                            Checked: video?.Checked ?? false
                         };
                     });
                 const tagCounts = new Map();
@@ -881,7 +892,7 @@ async function loadLeaderboard() {
                         return a.rank - b.rank;
                     })
                     .map(demon => `
-                    <div class="leaderboard-demon">
+                    <div class="leaderboard-demon${demon.Checked ? " leaderboard-demon--checked" : ""}"${demon.Checked ? ' title="Potwierdzony run na YouTube"' : ""}>
                         <span class="leaderboard-demon-info">
                             <span class="leaderboard-demon-name">
                                 ${demon.id
