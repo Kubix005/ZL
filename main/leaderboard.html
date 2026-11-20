@@ -827,13 +827,6 @@ async function loadLeaderboard() {
                         <span class="leaderboard-player-stats">
                             ${formatDemonCount(player.completed)} · Hardest: ${player.bestRank}
                         </span>
-                        ${player.tags.length
-                            ? `<span class="leaderboard-player-tags" aria-label="Najczęściej ukończone tagi">
-                                ${player.tags.map(tag => `
-                                    <span class="leaderboard-player-tag">${escapeHTML(tag.name)} <strong>${tag.count}</strong></span>
-                                `).join("")}
-                            </span>`
-                            : ""}
                     </span>
 
 
@@ -916,6 +909,13 @@ async function loadLeaderboard() {
                         <div class="leaderboard-demons-title">
                             Ukończone ${LIST_PAGE_CONTEXT.isChallengeList ? "wyzwania" : "demony"} gracza ${escapeHTML(player.name)}
                         </div>
+                        ${player.tags.length
+                            ? `<div class="leaderboard-player-tags" aria-label="Najczęściej ukończone tagi">
+                                ${player.tags.map(tag => `
+                                    <span class="leaderboard-player-tag">${escapeHTML(tag.name)} <strong>${tag.count}</strong></span>
+                                `).join("")}
+                            </div>`
+                            : ""}
                         <div class="leaderboard-demons-list">
                             ${demonCards}
                         </div>

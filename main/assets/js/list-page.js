@@ -14,7 +14,8 @@ const ZCL_DIFFICULTIES = [
     { minRank: 2, maxRank: 5, name: "Insane Demon" },
     { minRank: 6, maxRank: 15, name: "Hard Demon" },
     { minRank: 16, maxRank: 30, name: "Medium Demon" },
-    { minRank: 31, maxRank: Infinity, name: "Easy Demon" }
+    { minRank: 31, maxRank: 50, name: "Easy Demon" },
+    { minRank: 51, maxRank: Infinity, name: "Insane" }
 ];
 
 let levels = [];
