@@ -1,5 +1,11 @@
 [   
     {
+        "name":"Kicek to Koks",
+        "id":"152735762",
+        "AddedAt":"2026-11-21",
+        "tag":["Wave","High CPS"]
+    },
+    {
         "name":"Fearless",
         "id":"151878861",
         "AddedAt":"2026-11-13",
@@ -123,7 +129,8 @@
     {
         "name":"Firelight",
         "id":"152731986",
-        "tag":["Overall","Learny"]
+        "tag":["Overall","Learny"],
+        "AddedAt":"2026-11-21"
     },
     {
         "name":"Nooboek chelendz buf",
