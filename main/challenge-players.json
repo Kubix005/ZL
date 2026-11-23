@@ -452,5 +452,12 @@
     "Verified": ["Tiktok Challenge"],
     "Built": ["Tiktok Challenge"
     ]
+  },
+  {
+    "Player": "xMantis",
+    "ChallengeDemons": ["Hotline","peesquared"],
+    "Verified": [],
+    "Built": [
+    ]
   }
 ]

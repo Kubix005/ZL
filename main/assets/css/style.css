@@ -3050,6 +3050,10 @@ body.compare-body .catch-up-rank {
     margin: 40px auto 80px;
 }
 
+.player-page-challenge {
+    grid-template-columns: minmax(230px, 1fr) minmax(340px, 2fr) minmax(230px, 1fr);
+}
+
 .level-details,
 .level-victors-panel {
     overflow: hidden;
@@ -3194,6 +3198,78 @@ body.compare-body .catch-up-rank {
     margin-top: 20px;
 }
 
+.player-level-recommendations {
+    margin-top: 22px;
+}
+
+.player-level-recommendations-toggle {
+    width: 100%;
+    margin: 0;
+    cursor: pointer;
+    font: inherit;
+    font-weight: bold;
+    text-align: center;
+}
+
+.player-level-recommendations-content {
+    margin-top: 16px;
+    padding-top: 18px;
+    color: rgba(255, 255, 255, 0.8);
+    border-top: 1px solid rgba(95, 175, 245, 0.2);
+}
+
+.player-level-recommendations-content h2 {
+    margin: 0;
+    color: #a9d8ff;
+    font-size: 18px;
+}
+
+.player-level-recommendations-content > p {
+    margin: 8px 0 0;
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 13px;
+}
+
+.player-level-recommendations-content > ul {
+    display: grid;
+    gap: 8px;
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.player-level-recommendations-content > ul > li {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 10px;
+    background: rgba(7, 18, 31, 0.55);
+    border: 1px solid rgba(65, 145, 220, 0.18);
+    border-radius: 6px;
+}
+
+.player-level-recommendations-content a {
+    color: #a9d8ff;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+
+.player-level-recommendations-content a:hover {
+    text-decoration: underline;
+}
+
+.player-level-recommendations-content a:focus-visible {
+    border-radius: 2px;
+    outline: 2px solid #78baff;
+    outline-offset: 3px;
+}
+
+.player-level-recommendations-content li span {
+    flex-shrink: 0;
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 13px;
+}
+
 .player-pack-details {
     margin-top: 22px;
     padding-top: 18px;
@@ -3308,6 +3384,16 @@ body.compare-body .catch-up-rank {
     border-radius: 2px;
     outline: 2px solid #78baff;
     outline-offset: 3px;
+}
+
+@media (max-width: 920px) {
+    .player-page-challenge {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .player-page-challenge .player-details {
+        grid-column: 1 / -1;
+    }
 }
 
 .player-level-meta {
@@ -3682,6 +3768,10 @@ body.compare-body .catch-up-rank {
         grid-template-columns: minmax(0, 1fr);
         min-height: 0;
         margin-top: 28px;
+    }
+
+    .player-page-challenge .player-details {
+        grid-column: auto;
     }
 
     .level-details {
